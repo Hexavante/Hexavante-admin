@@ -1,0 +1,188 @@
+/* ============================================================
+   Assinaturas visuais por tema — diferenciam os temas além da cor.
+   Cada tema ganha textura/comportamento próprio na sidebar,
+   seleção, botões e cards. O tema default permanece como base.
+   ============================================================ */
+
+/* ---------- Discord Classic: blurple sólido, cantos vivos ---------- */
+html.theme-discord ::selection {
+  background: rgb(88 101 242 / 0.45);
+}
+html.theme-discord .hx-sidebar-shell {
+  border-right: 1px solid rgb(88 101 242 / 0.25);
+}
+html.theme-discord .hx-btn-primary {
+  box-shadow: 0 6px 20px rgb(88 101 242 / 0.35);
+}
+
+/* ---------- Cyber Neon: neon magenta, glow forte ---------- */
+html.theme-cyberpunk ::selection {
+  background: rgb(217 70 239 / 0.45);
+  color: #fff;
+}
+html.theme-cyberpunk .hx-sidebar-shell {
+  border-right: 1px solid rgb(217 70 239 / 0.35);
+  box-shadow: inset -1px 0 24px rgb(217 70 239 / 0.08);
+}
+html.theme-cyberpunk .hx-btn-primary {
+  box-shadow: 0 0 22px rgb(217 70 239 / 0.45);
+}
+html.theme-cyberpunk .hx-card {
+  border-color: rgb(217 70 239 / 0.16);
+}
+
+/* ---------- Matrix Verde: scanlines + terminal ---------- */
+html.theme-hacker ::selection {
+  background: rgb(34 197 94 / 0.4);
+  color: #03170b;
+}
+html.theme-hacker .hx-sidebar-shell {
+  border-right: 1px solid rgb(34 197 94 / 0.3);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 3px,
+    rgb(34 197 94 / 0.025) 3px 4px
+  );
+}
+html.theme-hacker .hx-btn-primary {
+  box-shadow: 0 0 18px rgb(34 197 94 / 0.35);
+  text-shadow: 0 0 8px rgb(0 0 0 / 0.4);
+}
+
+/* ---------- Obsidian: preto absoluto, flat e nítido ---------- */
+html.theme-obsidian ::selection {
+  background: rgb(99 102 241 / 0.5);
+}
+html.theme-obsidian body.app-shell,
+html.theme-obsidian .hx-themed-shell {
+  background-image: none;
+}
+html.theme-obsidian .hx-card {
+  border-color: rgb(148 163 184 / 0.14);
+  box-shadow: none;
+}
+html.theme-obsidian .hx-btn-primary {
+  box-shadow: none;
+}
+
+/* ---------- Sunset: calor âmbar ---------- */
+html.theme-sunset ::selection {
+  background: rgb(249 115 22 / 0.4);
+}
+html.theme-sunset .hx-sidebar-shell {
+  border-right: 1px solid rgb(249 115 22 / 0.28);
+  box-shadow: inset -1px 0 28px rgb(249 115 22 / 0.07);
+}
+html.theme-sunset .hx-btn-primary {
+  box-shadow: 0 6px 22px rgb(249 115 22 / 0.4);
+}
+
+/* ---------- Deep Ocean: profundidade azul ---------- */
+html.theme-ocean ::selection {
+  background: rgb(14 165 233 / 0.4);
+}
+html.theme-ocean .hx-sidebar-shell {
+  border-right: 1px solid rgb(14 165 233 / 0.3);
+  background-image: linear-gradient(180deg, rgb(14 165 233 / 0.05), transparent 40%);
+}
+html.theme-ocean .hx-btn-primary {
+  box-shadow: 0 6px 22px rgb(14 165 233 / 0.35);
+}
+
+/* ---------- Sakura: suave, bordas arredondadas com brilho rosa ---------- */
+html.theme-sakura ::selection {
+  background: rgb(236 72 153 / 0.35);
+}
+html.theme-sakura .hx-sidebar-shell {
+  border-right: 1px solid rgb(236 72 153 / 0.25);
+}
+html.theme-sakura .hx-btn-primary {
+  box-shadow: 0 6px 20px rgb(236 72 153 / 0.35);
+}
+html.theme-sakura .hx-card {
+  border-color: rgb(236 72 153 / 0.14);
+}
+
+/* ---------- Midnight Violet: névoa violeta ---------- */
+html.theme-midnight ::selection {
+  background: rgb(139 92 246 / 0.45);
+}
+html.theme-midnight .hx-sidebar-shell {
+  border-right: 1px solid rgb(139 92 246 / 0.3);
+  box-shadow: inset -1px 0 24px rgb(139 92 246 / 0.08);
+}
+html.theme-midnight .hx-btn-primary {
+  box-shadow: 0 6px 22px rgb(139 92 246 / 0.4);
+}
+
+/* ---------- Golden: luxo dourado ---------- */
+html.theme-amber ::selection {
+  background: rgb(245 158 11 / 0.4);
+  color: #1a1206;
+}
+html.theme-amber .hx-sidebar-shell {
+  border-right: 1px solid rgb(245 158 11 / 0.3);
+}
+html.theme-amber .hx-btn-primary {
+  box-shadow: 0 6px 22px rgb(245 158 11 / 0.4);
+}
+html.theme-amber .hx-icon-box {
+  border-color: rgb(245 158 11 / 0.35);
+  background: rgb(245 158 11 / 0.12);
+  color: #fbbf24;
+}
+
+/* ---------- Ember: brasa ---------- */
+html.theme-ember ::selection {
+  background: rgb(239 68 68 / 0.45);
+  color: #fff;
+}
+html.theme-ember .hx-sidebar-shell {
+  border-right: 1px solid rgb(239 68 68 / 0.32);
+  box-shadow: inset -1px 0 26px rgb(239 68 68 / 0.08);
+}
+html.theme-ember .hx-btn-primary {
+  box-shadow: 0 6px 22px rgb(239 68 68 / 0.4);
+}
+
+/* ---------- Floresta: verde calmo com textura ---------- */
+html.theme-forest ::selection {
+  background: rgb(5 150 105 / 0.4);
+}
+html.theme-forest .hx-sidebar-shell {
+  border-right: 1px solid rgb(5 150 105 / 0.3);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 12px,
+    rgb(5 150 105 / 0.02) 12px 13px
+  );
+}
+html.theme-forest .hx-btn-primary {
+  box-shadow: 0 6px 20px rgb(5 150 105 / 0.35);
+}
+
+/* ---------- Temas claros: seleção e brilho suaves ---------- */
+html.theme-snow ::selection {
+  background: rgb(88 101 242 / 0.22);
+}
+html.theme-snow .hx-btn-primary {
+  box-shadow: 0 6px 18px rgb(88 101 242 / 0.3);
+}
+html.theme-daylight ::selection {
+  background: rgb(13 148 136 / 0.2);
+}
+html.theme-daylight .hx-btn-primary {
+  box-shadow: 0 6px 18px rgb(13 148 136 / 0.28);
+}
+html.theme-cream ::selection {
+  background: rgb(217 119 6 / 0.22);
+}
+html.theme-cream .hx-btn-primary {
+  box-shadow: 0 6px 18px rgb(217 119 6 / 0.3);
+}
+html.theme-pearl ::selection {
+  background: rgb(124 58 237 / 0.2);
+}
+html.theme-pearl .hx-btn-primary {
+  box-shadow: 0 6px 18px rgb(124 58 237 / 0.3);
+}

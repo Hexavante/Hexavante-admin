@@ -1,0 +1,246 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { updateUserWithRetry } from "@/lib/retry-update";
+import { ContentPolicyError } from "@/lib/profanity-filter";
+import { updateProfileSchema } from "@/lib/validations/profile";
+import { enforceCleanContent } from "@/services/content-policy.service";
+import type { ZodError } from "zod";
+
+export type ProfileActionResult = {
+  success: boolean;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  avatarUrl?: string;
+  fullName?: string;
+};
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
+function resolveImageMimeType(file: File): string | null {
+  if (file.type && ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return file.type;
+  }
+
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  const byExtension: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+  };
+
+  return extension ? (byExtension[extension] ?? null) : null;
+}
+
+function mapZodErrors(error: ZodError) {
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = String(issue.path[0] ?? "");
+    if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+  }
+  return fieldErrors;
+}
+
+export async function updateProfileAction(
+  _prev: ProfileActionResult,
+  formData: FormData,
+): Promise<ProfileActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Faça login para continuar." };
+  }
+
+  const raw = {
+    fullName: formData.get("fullName"),
+    bio: formData.get("bio") ?? "",
+    phone: formData.get("phone") ?? "",
+    city: formData.get("city") ?? "",
+    state: formData.get("state") ?? "",
+    profileVisibility: formData.get("profileVisibility"),
+  };
+
+  const parsed = updateProfileSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: "Corrija os campos destacados.",
+      fieldErrors: mapZodErrors(parsed.error),
+    };
+  }
+
+  try {
+    await enforceCleanContent({
+      userId: session.user.id,
+      text: parsed.data.fullName,
+      fieldLabel: "nome",
+      context: "PROFILE",
+    });
+    if (parsed.data.bio) {
+      await enforceCleanContent({
+        userId: session.user.id,
+        text: parsed.data.bio,
+        fieldLabel: "bio",
+        context: "PROFILE",
+      });
+    }
+  } catch (error) {
+    if (error instanceof ContentPolicyError) {
+      return { success: false, error: error.message };
+    }
+    throw error;
+  }
+
+  await updateUserWithRetry(
+    { id: session.user.id },
+    {
+      fullName: parsed.data.fullName,
+      bio: parsed.data.bio || null,
+      phone: parsed.data.phone || null,
+      city: parsed.data.city || null,
+      state: parsed.data.state?.toUpperCase() || null,
+      profileVisibility: parsed.data.profileVisibility,
+    },
+  );
+
+  revalidatePath("/", "layout");
+  revalidatePath("/perfil");
+  revalidatePath(`/perfil/${session.user.username}`);
+  revalidatePath("/configuracoes/perfil");
+  revalidatePath("/");
+  revalidatePath("/ranking");
+  revalidatePath("/social");
+  revalidatePath("/mensagens");
+
+  return { success: true, fullName: parsed.data.fullName };
+}
+
+export async function updateProfilePhotoAction(formData: FormData): Promise<ProfileActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Faça login para continuar." };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false, error: "Selecione uma imagem válida." };
+  }
+
+  const mimeType = resolveImageMimeType(file);
+  if (!mimeType) {
+    return { success: false, error: "Use uma imagem PNG, JPG, GIF ou WebP." };
+  }
+
+  if (file.size > MAX_AVATAR_SIZE) {
+    return { success: false, error: "A imagem deve ter no máximo 5MB." };
+  }
+
+  try {
+    const bytes = await file.arrayBuffer();
+    const base64 = Buffer.from(bytes).toString("base64");
+    const avatarUrl = `data:${mimeType};base64,${base64}`;
+
+    await updateUserWithRetry(
+      { id: session.user.id },
+      { avatarUrl },
+    );
+
+    revalidatePath("/perfil");
+    revalidatePath(`/perfil/${session.user.username}`);
+    revalidatePath("/configuracoes/perfil");
+    revalidatePath("/");
+    return { success: true, avatarUrl };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const isColumnTooSmall =
+      message.includes("Data too long") ||
+      message.includes("value too long") ||
+      message.includes("1406");
+
+    return {
+      success: false,
+      error: isColumnTooSmall
+        ? "O banco precisa aceitar fotos maiores. Rode: npm run db:avatar"
+        : message || "Erro ao atualizar foto de perfil.",
+    };
+  }
+}
+
+const MAX_BANNER_SIZE = 8 * 1024 * 1024;
+
+export async function updateProfileBannerAction(formData: FormData): Promise<ProfileActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Faça login para continuar." };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false, error: "Selecione uma imagem válida." };
+  }
+
+  const mimeType = resolveImageMimeType(file);
+  if (!mimeType) {
+    return { success: false, error: "Use uma imagem PNG, JPG, GIF ou WebP." };
+  }
+
+  if (file.size > MAX_BANNER_SIZE) {
+    return { success: false, error: "A imagem deve ter no máximo 8MB." };
+  }
+
+  try {
+    const bytes = await file.arrayBuffer();
+    const base64 = Buffer.from(bytes).toString("base64");
+    const bannerUrl = `data:${mimeType};base64,${base64}`;
+
+    await updateUserWithRetry(
+      { id: session.user.id },
+      { bannerUrl },
+    );
+
+    revalidatePath("/perfil");
+    revalidatePath(`/perfil/${session.user.username}`);
+    revalidatePath("/configuracoes/perfil");
+    revalidatePath("/");
+    return { success: true, avatarUrl: bannerUrl };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const isColumnTooSmall =
+      message.includes("Data too long") ||
+      message.includes("value too long") ||
+      message.includes("1406");
+
+    return {
+      success: false,
+      error: isColumnTooSmall
+        ? "O banco precisa aceitar banners maiores."
+        : message || "Erro ao atualizar banner.",
+    };
+  }
+}
+
+export async function removeProfileBannerAction(): Promise<ProfileActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Faça login para continuar." };
+  }
+
+  try {
+    await updateUserWithRetry(
+      { id: session.user.id },
+      { bannerUrl: null },
+    );
+
+    revalidatePath("/perfil");
+    revalidatePath(`/perfil/${session.user.username}`);
+    revalidatePath("/configuracoes/perfil");
+    revalidatePath("/");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Erro ao remover banner." };
+  }
+}

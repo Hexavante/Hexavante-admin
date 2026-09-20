@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.example
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Tests
+tests/
+coverage/
+.nyc_output/
+
+# Misc
+*.tsbuildinfo
+.aider*
+.debris/
+.directory
+.megaignore
+Modelfile
+
+# Mobile/Capacitor
+android/
+ios/
+.capacitor/
+
+# Public uploads
+public/uploads/
+
+# Tauri
+src-tauri/target/
