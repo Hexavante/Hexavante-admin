@@ -21,10 +21,13 @@
 
 ## Produto
 
+> `categorias.md`, `monetizacao.md` e `publicacao-cursos.md` são herdados do app web
+> (referência de negócio — o painel não os implementa).
+
 | Documento | Conteúdo |
 |-----------|----------|
-| [visão-geral.md](visão-geral.md) | Descrição, produtos, público-alvo, features implementadas |
-| [escopo-mvp.md](escopo-mvp.md) | **Escopo oficial do TCC** (priorização P0–P3) |
+| [visão-geral.md](visão-geral.md) | Descrição, papel no ecossistema e princípios do painel |
+| [escopo-mvp.md](escopo-mvp.md) | O que está dentro e fora do escopo do painel |
 | [categorias.md](categorias.md) | Categorias iniciais de cursos |
 | [monetizacao.md](monetizacao.md) | Modelo de negócio |
 | [publicacao-cursos.md](publicacao-cursos.md) | Fluxo de instrutores, moderação e capa |
@@ -35,9 +38,9 @@
 
 | Documento | Conteúdo |
 |-----------|----------|
-| [requisitos-funcionais.md](requisitos-funcionais.md) | RF001–RF053 + extensões implementadas |
-| [casos-de-uso.md](casos-de-uso.md) | UC001–UC071 — fluxos por ator, RF/RN e rotas |
-| [regras-de-negocio.md](regras-de-negocio.md) | RN001–RN037 |
+| [requisitos-funcionais.md](requisitos-funcionais.md) | RF-01 a RF-12 (login, sessão, telas do painel) |
+| [casos-de-uso.md](casos-de-uso.md) | UC-01 a UC-05 — sessão longa, moderação, publicação, correção, terminal |
+| [regras-de-negocio.md](regras-de-negocio.md) | RN-01 a RN-10 (sessão, papéis, uploads, operação) |
 | [permissoes.md](permissoes.md) | Papéis, RBAC e matriz de acesso |
 
 ---
@@ -58,15 +61,13 @@
 
 | Módulo | Rotas / serviços |
 |--------|------------------|
-| Cursos | `/courses`, `enrollment.service.ts` |
-| Simulados | `/simulados`, `exam.service.ts`, recompensas diárias |
-| Gamificação | XP, moedas, ranking, boosters |
-| Loja | `/shop`, `shop.service.ts`, passes e pacotes de revisão |
-| Social | `/social`, seguidores, feed de atividades |
-| Mensagens | `/mensagens`, `direct-message.service.ts` |
-| Ao vivo | `/live-rooms`, chat de sala |
-| Moderação | `/moderacao`, ban/mute, impersonate |
-| Certificados | `/certificados`, verificação por código |
+| Login/sessão | `/admin-login`, `/admin-verificar`, `lib/admin-auth.ts` |
+| Visão geral | `/admin` (stats, gráfico 7 dias, atalhos) |
+| Usuários | `/admin/usuarios` (cargos, warn/mute/ban, XP, impersonate) |
+| Conteúdo | `/admin/conteudo`, `/admin/cursos`, `/admin/tutorials` |
+| Simulados | `/admin/simulados` (+ CRUD e correções dissertativas) |
+| Curadoria | `/admin/categorias`, `/admin/instrutores` |
+| Auditoria/operação | `/admin/logs`, `/admin/terminal`, `/admin/configuracoes` |
 
 ---
 

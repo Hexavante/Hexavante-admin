@@ -50,7 +50,7 @@ Painel de moderação servido em `painel.hexavante.com.br` (porta 3002, containe
 Moderador ──HTTPS──▶ Nginx ──▶ hexavante-admin:3002 ──Prisma──▶ MySQL (mesmo banco)
 ```
 
-Acesso a dados via Prisma direto no banco compartilhado (ferramenta interna — sem necessidade da camada API). Links "ver no app" apontam para `APP_URL` (`@/lib/app-url.ts`).
+Acesso a dados via Prisma direto no banco compartilhado (ferramenta interna — moderação não passa pela API). Ainda assim, ações de conta herdadas do app (`src/app/actions/auth.ts`, impersonate) chamam a API pública: dependem de `NEXT_PUBLIC_API_URL`. Login do moderador é próprio: `hx_admin_session` em `admin_sessions` (Prisma). Links "ver no app" apontam para `APP_URL` (`@/lib/app-url.ts`).
 
 ### Estrutura de pastas
 
@@ -88,7 +88,7 @@ prisma/schema.prisma      # Espelho exato do banco (ver docs/der-logico.md)
 
 ```bash
 npm install
-cp .env.example .env   # DATABASE_URL, NEXTAUTH_SECRET, NEXT_PUBLIC_APP_URL, RESEND_API_KEY...
+cp .env.example .env   # DATABASE_URL, AUTH_SECRET (o .env.example ainda diz NEXTAUTH_SECRET), NEXT_PUBLIC_APP_URL, RESEND_API_KEY...
 npx prisma generate
 npm run dev            # :3002 (use PORT=3002)
 ```
@@ -100,8 +100,10 @@ Login de teste: conta com papel `MODERATOR`/`ADMIN` + código por e-mail.
 | Variável | Para que |
 |---|---|
 | `DATABASE_URL` | MySQL (`mysql://...`, `%2F` na senha) |
-| `NEXTAUTH_SECRET` | Assinatura de sessão |
+| `AUTH_SECRET` | Assinatura dos tokens internos (no `.env.example` ainda aparece como `NEXTAUTH_SECRET`, nome que o código não lê) |
 | `NEXT_PUBLIC_APP_URL` | Links "ver no app" (`https://app.hexavante.com.br`) |
+| `NEXT_PUBLIC_API_URL` | Base da API nas ações de conta (`src/lib/api-url.ts`) |
+| `WEB_ORIGIN` | Origem do app web nos redirecionamentos (default: `https://app.hexavante.com.br`) |
 | `RESEND_API_KEY` / `RESEND_FROM` | Código de 6 dígitos por e-mail |
 | `PORT` | `3002` |
 
@@ -126,7 +128,7 @@ docker build --no-cache -t hexavante-admin .
 docker stop hexavante-admin && docker rm hexavante-admin
 docker run -d --name hexavante-admin --network hexavante_default -p 127.0.0.1:3002:3002 \
   -v hexavante_uploads:/app/public/uploads \
-  -e DATABASE_URL='...' -e NEXTAUTH_SECRET='...' \
+  -e DATABASE_URL='...' -e AUTH_SECRET='...' \
   -e NEXT_PUBLIC_APP_URL='https://app.hexavante.com.br' \
   -e RESEND_API_KEY='...' -e RESEND_FROM='...' \
   --restart unless-stopped hexavante-admin

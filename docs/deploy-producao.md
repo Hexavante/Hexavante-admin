@@ -20,7 +20,7 @@ docker stop hexavante-admin && docker rm hexavante-admin
 docker run -d --name hexavante-admin --network hexavante_default -p 127.0.0.1:3002:3002 \
   -v hexavante_uploads:/app/public/uploads \
   -e DATABASE_URL='mysql://hexavante:<senha-%2F>@hexavante-mysql:3306/hexavante' \
-  -e NEXTAUTH_SECRET='...' \
+  -e AUTH_SECRET='...' \
   -e NEXT_PUBLIC_APP_URL='https://app.hexavante.com.br' \
   -e RESEND_API_KEY='...' -e RESEND_FROM='...' \
   --restart unless-stopped hexavante-admin
