@@ -16,7 +16,7 @@ cd Hexavante-admin
 npm install
 cp .env.example .env
 # DATABASE_URL=mysql://hexavante:senha@localhost:3306/hexavante
-# AUTH_SECRET=segredo-forte   (o .env.example ainda usa o nome antigo NEXTAUTH_SECRET)
+# AUTH_SECRET=segredo-forte   (mesmo nome no .env.example)
 # NEXT_PUBLIC_API_URL=https://api.hexavante.com.br  (ações de conta)
 # NEXT_PUBLIC_APP_URL=https://app.hexavante.com.br
 # RESEND_API_KEY=... (códigos de login; sem ela, só log)

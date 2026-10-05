@@ -88,7 +88,7 @@ prisma/schema.prisma      # Espelho exato do banco (ver docs/der-logico.md)
 
 ```bash
 npm install
-cp .env.example .env   # DATABASE_URL, AUTH_SECRET (o .env.example ainda diz NEXTAUTH_SECRET), NEXT_PUBLIC_APP_URL, RESEND_API_KEY...
+cp .env.example .env   # DATABASE_URL, AUTH_SECRET, NEXT_PUBLIC_APP_URL, RESEND_API_KEY...
 npx prisma generate
 npm run dev            # :3002 (use PORT=3002)
 ```
@@ -100,7 +100,7 @@ Login de teste: conta com papel `MODERATOR`/`ADMIN` + código por e-mail.
 | Variável | Para que |
 |---|---|
 | `DATABASE_URL` | MySQL (`mysql://...`, `%2F` na senha) |
-| `AUTH_SECRET` | Assinatura dos tokens internos (no `.env.example` ainda aparece como `NEXTAUTH_SECRET`, nome que o código não lê) |
+| `AUTH_SECRET` | Assinatura dos tokens internos (mesmo nome no `.env.example`) |
 | `NEXT_PUBLIC_APP_URL` | Links "ver no app" (`https://app.hexavante.com.br`) |
 | `NEXT_PUBLIC_API_URL` | Base da API nas ações de conta (`src/lib/api-url.ts`) |
 | `WEB_ORIGIN` | Origem do app web nos redirecionamentos (default: `https://app.hexavante.com.br`) |
