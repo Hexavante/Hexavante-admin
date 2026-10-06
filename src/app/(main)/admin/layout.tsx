@@ -7,7 +7,7 @@ import { canModerate } from "@/lib/permissions";
 import { Shield, LogOut } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -20,33 +20,46 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <PageShell size="lg">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <PageHeader
           badge="Administração"
           icon={Shield}
           title="Moderação"
           description="Gerencie usuários, conteúdo e a plataforma."
         />
-        <form action={async () => {
-          "use server";
-          const { deleteAdminSession } = await import("@/lib/admin-auth");
-          await deleteAdminSession();
-          redirect("/admin-login");
-        }}>
-          <button
-            type="submit"
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-400 transition hover:border-red-500/30 hover:text-red-400"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </button>
-        </form>
-      </div>
-      <ModerationNav pathname={pathname} />
-      <div className="mt-6">{children}</div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="hidden sm:block h-8 w-px bg-[hsl(var(--sidebar-border))]" aria-hidden="true" />
+          <form action={async () => {
+            "use server";
+            const { deleteAdminSession } = await import("@/lib/admin-auth");
+            await deleteAdminSession();
+            redirect("/admin-login");
+          }}>
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Sair
+            </Button>
+          </form>
+        </div>
+      </header>
+
+      {/* Navigation */}
+      <nav className="mb-6" aria-label="Navegação principal da moderação">
+        <ModerationNav pathname={pathname} />
+      </nav>
+
+      {/* Content */}
+      <main className="space-y-8" id="main-content">
+        {children}
+      </main>
+
+      {/* Spotlight Search */}
       <SpotlightSearch />
-      <p className="mt-8 text-center text-xs text-slate-600">
-        Atalho: <kbd className="rounded border border-white/10 px-1">Ctrl+K</kbd> busca rápida
+
+      {/* Footer hint */}
+      <p className="mt-10 text-center text-xs text-slate-500">
+        Atalho: <kbd className="rounded border border-white/10 px-1.5 py-0.5 font-mono">Ctrl+K</kbd> busca rápida
       </p>
     </PageShell>
   );
