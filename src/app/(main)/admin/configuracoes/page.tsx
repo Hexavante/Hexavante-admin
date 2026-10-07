@@ -4,7 +4,7 @@ import { MaintenancePanel } from "@/components/moderation/maintenance-panel";
 
 export default function ModerationSettingsPage() {
   return (
-    <div className="grid gap-6 lg:grid-cols-1">
+    <div className="grid gap-6 lg:grid-cols-2">
       <BroadcastPanel />
       <BoosterPanel />
       <MaintenancePanel />

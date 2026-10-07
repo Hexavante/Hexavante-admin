@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { ContentPublishToggle } from "@/components/moderation/content-publish-toggle";
 import { DeleteContentButton } from "@/components/courses/delete-content-button";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -56,9 +57,17 @@ export default async function ModerationContentPage() {
         </div>
         <Link
           href="/admin/simulados/correcoes"
-          className="rounded-xl border border-[hsl(var(--sidebar-highlight)/0.22)] bg-[hsl(var(--sidebar-highlight)/0.1)] px-4 py-3 transition hover:border-[hsl(var(--sidebar-highlight)/0.4)]"
+          className="group flex flex-col justify-center rounded-xl border border-[hsl(var(--sidebar-highlight)/0.22)] bg-[hsl(var(--sidebar-highlight)/0.1)] px-4 py-3 transition hover:border-[hsl(var(--sidebar-highlight)/0.45)] hover:bg-[hsl(var(--sidebar-highlight)/0.14)]"
         >
-          <p className="text-sm font-semibold text-[hsl(var(--sidebar-foreground)/0.92)]">Corrigir dissertativas →</p>
+          <p className="flex items-center justify-between gap-2 text-sm font-semibold text-[hsl(var(--sidebar-foreground)/0.92)]">
+            <span className="group-hover:text-[hsl(var(--sidebar-highlight))] transition-colors">
+              Corrigir dissertativas
+            </span>
+            <ArrowRight
+              className="h-4 w-4 shrink-0 hx-accent-text transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </p>
           <p className="mt-1 text-xs hx-accent-text-muted">Fila de correção manual</p>
         </Link>
       </div>
@@ -75,7 +84,7 @@ export default async function ModerationContentPage() {
             {courses.map((course) => (
               <li
                 key={course.id}
-                className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex min-h-[70px] flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <p className="font-medium text-white">{course.title}</p>
@@ -128,13 +137,16 @@ export default async function ModerationContentPage() {
             {exams.map((exam) => (
               <li
                 key={exam.id}
-                className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex min-h-[70px] flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <p className="font-medium text-white">{exam.title}</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {exam.isPublished ? "Publicado" : "Rascunho"}
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <StatusBadge
+                      status={exam.isPublished ? "APPROVED" : "PENDING_REVIEW"}
+                      label={exam.isPublished ? "Publicado" : "Rascunho"}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <ContentPublishToggle kind="exam" id={exam.id} isPublished={exam.isPublished} />

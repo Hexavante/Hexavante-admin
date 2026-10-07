@@ -71,19 +71,20 @@ export function UserTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
-        <Input
-          placeholder="Buscar por nome ou @username"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="min-w-[200px] flex-1"
-        />
-        <Select value={status} onValueChange={setStatus}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="w-full min-w-0 sm:flex-1">
+          <Input
+            placeholder="Buscar por nome ou @username"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={status} onValueChange={setStatus} className="w-full sm:w-44">
           <SelectItem value="all">Todos os status</SelectItem>
           <SelectItem value="banned">Banidos</SelectItem>
           <SelectItem value="muted">Silenciados</SelectItem>
         </Select>
-        <Select value={role} onValueChange={setRole}>
+        <Select value={role} onValueChange={setRole} className="w-full sm:w-44">
           <SelectItem value="all">Todos os cargos</SelectItem>
           <SelectItem value="SUPERADMIN">Superadmin</SelectItem>
           <SelectItem value="ADMIN">Admin</SelectItem>

@@ -6,7 +6,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { APP_URL } from "@/lib/app-url";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Eye, Clock, Trash2 } from "lucide-react";
+import { Eye } from "lucide-react";
+import { DeleteContentButton } from "@/components/courses/delete-content-button";
 import { requireAdminPage } from "@/lib/admin-page";
 
 function formatDuration(seconds: number | null): string {
@@ -31,7 +32,6 @@ export default async function AdminTutorialsPage() {
 
   const publishedCount = tutorials.filter((t) => t.isPublished).length;
   const draftCount = tutorials.length - publishedCount;
-  const totalViews = tutorials.reduce((sum, t) => sum + t.viewCount, 0);
 
   return (
     <div className="space-y-8">
@@ -145,20 +145,11 @@ export default async function AdminTutorialsPage() {
                           Ver
                         </Link>
                       )}
-                      <form action={deleteTutorialModeratorAction.bind(null, tut.id)}>
-                        <button
-                          type="submit"
-                          title="Excluir tutorial"
-                          className="grid h-8 w-8 place-items-center rounded-lg border border-red-500/30 text-slate-400 transition hover:border-red-500/60 hover:text-red-400"
-                          onClick={(e) => {
-                            if (!confirm(`Excluir o tutorial "${tut.title}" permanentemente?`)) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </form>
+                      <DeleteContentButton
+                        action={deleteTutorialModeratorAction.bind(null, tut.id)}
+                        label="Excluir"
+                        confirmMessage={`Excluir o tutorial "${tut.title}" permanentemente? Esta ação não pode ser desfeita.`}
+                      />
                     </div>
                   </td>
                 </tr>
