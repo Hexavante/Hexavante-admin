@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
 type Tab = {
@@ -61,11 +64,15 @@ function isTabActive(tab: Tab, pathname: string): boolean {
 }
 
 type Props = {
-  pathname: string;
   roles: string[];
 };
 
-export function ModerationNav({ pathname, roles }: Props) {
+export function ModerationNav({ roles }: Props) {
+  // O layout compartilhado do /admin não é refeito a cada navegação client-side
+  // (renderização parcial do App Router), então o ativo é lido da rota atual
+  // no cliente — assim o indicador acompanha a tela sem refresh.
+  const pathname = usePathname();
+
   const visible = (tabs: Tab[]) =>
     tabs.filter((tab) => !tab.adminOnly || roles.includes("ADMIN") || roles.includes("SUPERADMIN"));
 

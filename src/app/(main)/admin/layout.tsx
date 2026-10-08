@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PageShell } from "@/components/ui/page-shell";
 import { canModerate } from "@/lib/permissions";
 import { Shield, LogOut } from "lucide-react";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -15,8 +14,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await getAdminSession();
   if (!user) redirect("/admin-login");
   if (!canModerate(user.roles)) redirect("/");
-
-  const pathname = (await headers()).get("x-pathname") ?? "/admin";
 
   return (
     <PageShell size="lg" className="max-w-[1440px]">
@@ -45,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </header>
 
       {/* Navigation */}
-      <ModerationNav pathname={pathname} roles={user.roles} />
+      <ModerationNav roles={user.roles} />
 
       {/* Content */}
       <main className="space-y-8" id="main-content">
