@@ -22,3 +22,15 @@ export function clampTake(value: number | undefined, fallback: number, max = 200
   if (value === undefined || !Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(1, Math.floor(value)));
 }
+
+/**
+ * Lê o parâmetro de query `page` (1-based) de forma segura.
+ * Ausente/inválido/zerado/negativo → fallback (1).
+ */
+export function readPageParam(searchParams: URLSearchParams, fallback = 1): number {
+  const raw = searchParams.get("page");
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(1, Math.floor(parsed));
+}

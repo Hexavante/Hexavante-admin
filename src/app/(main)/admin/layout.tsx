@@ -45,9 +45,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </header>
 
       {/* Navigation */}
-      <nav className="mb-6" aria-label="Navegação principal da moderação">
-        <ModerationNav pathname={pathname} />
-      </nav>
+      <ModerationNav pathname={pathname} roles={user.roles} />
 
       {/* Content */}
       <main className="space-y-8" id="main-content">

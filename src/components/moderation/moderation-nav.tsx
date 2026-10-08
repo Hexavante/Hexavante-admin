@@ -1,38 +1,112 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 
-const tabs = [
-  { href: "/admin", label: "Visão Geral", exact: true },
-  { href: "/admin/usuarios", label: "Usuários" },
-  { href: "/admin/conteudo", label: "Conteúdo" },
-  { href: "/admin/tutorials", label: "Tutoriais" },
-  { href: "/admin/logs", label: "Logs" },
-  { href: "/admin/terminal", label: "Terminal" },
-  { href: "/admin/configuracoes", label: "Configurações" },
+type Tab = {
+  href: string;
+  label: string;
+  exact?: boolean;
+  /** Prefixos adicionais que iluminam esta aba (ex.: editores de conteúdo). */
+  match?: string[];
+  /** Telas novas: só ADMIN/SUPERADMIN. */
+  adminOnly?: boolean;
+};
+
+type Group = {
+  id: string;
+  label: string;
+  tabs: Tab[];
+};
+
+const GROUPS: Group[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    tabs: [{ href: "/admin", label: "Visão Geral", exact: true }],
+  },
+  {
+    id: "moderacao",
+    label: "Moderação",
+    tabs: [
+      { href: "/admin/usuarios", label: "Usuários" },
+      { href: "/admin/conteudo", label: "Conteúdo", match: ["/admin/cursos", "/admin/simulados"] },
+      { href: "/admin/tutorials", label: "Tutoriais" },
+      { href: "/admin/instrutores", label: "Instrutores" },
+      { href: "/admin/logs", label: "Logs" },
+    ],
+  },
+  {
+    id: "sistema",
+    label: "Sistema",
+    tabs: [
+      { href: "/admin/financeiro", label: "Financeiro", adminOnly: true },
+      { href: "/admin/categorias", label: "Categorias" },
+      { href: "/admin/terminal", label: "Terminal" },
+      { href: "/admin/configuracoes", label: "Configurações" },
+    ],
+  },
 ];
+
+function isTabActive(tab: Tab, pathname: string): boolean {
+  if (tab.exact) return pathname === tab.href;
+  const prefixes = [tab.href, ...(tab.match ?? [])];
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
 
 type Props = {
   pathname: string;
+  roles: string[];
 };
 
-export function ModerationNav({ pathname }: Props) {
+export function ModerationNav({ pathname, roles }: Props) {
+  const visible = (tabs: Tab[]) =>
+    tabs.filter((tab) => !tab.adminOnly || roles.includes("ADMIN") || roles.includes("SUPERADMIN"));
+
+  const groups = GROUPS.map((group) => ({ ...group, tabs: visible(group.tabs) })).filter(
+    (group) => group.tabs.length > 0,
+  );
+
+  const activeGroup =
+    groups.find((group) => group.tabs.some((tab) => isTabActive(tab, pathname))) ?? groups[0];
+
   return (
-    <nav className="hx-segment-nav-inline mb-6">
-      {tabs.map((tab) => {
-        const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
-        return (
+    <nav aria-label="Navegação principal da moderação" className="mb-6">
+      {/* Grupos */}
+      <div className="hx-segment-nav-inline mb-3">
+        {groups.map((group) => {
+          const active = group.id === activeGroup?.id;
+          const firstTab = group.tabs[0];
+          return (
+            <Link
+              key={group.id}
+              href={firstTab.href}
+              className={cn(
+                "hx-segment-link",
+                active ? "hx-segment-link-active" : "hx-segment-link-inactive",
+              )}
+            >
+              {group.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Sub-abas do grupo ativo */}
+      <div className="hx-segment-nav-inline">
+        {activeGroup?.tabs.map((tab) => (
           <Link
             key={tab.href}
             href={tab.href}
             className={cn(
               "hx-segment-link",
-              active ? "hx-segment-link-active" : "hx-segment-link-inactive",
+              isTabActive(tab, pathname)
+                ? "hx-segment-link-active"
+                : "hx-segment-link-inactive",
             )}
           >
             {tab.label}
           </Link>
-        );
-      })}
+        ))}
+      </div>
     </nav>
   );
 }

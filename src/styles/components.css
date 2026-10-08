@@ -294,16 +294,19 @@
     font-size: 0.8125rem;
     font-weight: 600;
     color: hsl(var(--sidebar-foreground) / 0.6);
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .hx-segment-link:hover {
     color: hsl(var(--sidebar-foreground));
   }
 
-  .hx-segment-link-active {
-    background: hsl(var(--sidebar-highlight) / 0.15);
-    color: hsl(var(--sidebar-highlight));
+  /* Seleção sólida (o :hover acompanha, senão ele lava a cor da aba ativa) */
+  .hx-segment-link-active,
+  .hx-segment-link-active:hover {
+    background: hsl(var(--sidebar-highlight));
+    color: hsl(var(--sidebar-background));
+    box-shadow: 0 1px 8px hsl(var(--sidebar-highlight) / 0.35);
   }
 
   .hx-segment-link-inactive {
