@@ -31,6 +31,7 @@ const GROUPS: Group[] = [
     label: "Moderação",
     tabs: [
       { href: "/admin/usuarios", label: "Usuários" },
+      { href: "/admin/perfis", label: "Perfis", adminOnly: true },
       { href: "/admin/denuncias", label: "Denúncias", adminOnly: true },
       { href: "/admin/conteudo", label: "Conteúdo", match: ["/admin/cursos", "/admin/simulados"] },
       { href: "/admin/tutorials", label: "Tutoriais" },
@@ -43,6 +44,9 @@ const GROUPS: Group[] = [
     label: "Sistema",
     tabs: [
       { href: "/admin/financeiro", label: "Financeiro", adminOnly: true },
+      { href: "/admin/broadcasts", label: "Broadcasts", adminOnly: true },
+      { href: "/admin/certificados", label: "Certificados", adminOnly: true },
+      { href: "/admin/salas", label: "Salas ao vivo", adminOnly: true },
       { href: "/admin/categorias", label: "Categorias" },
       { href: "/admin/terminal", label: "Terminal" },
       { href: "/admin/configuracoes", label: "Configurações" },
