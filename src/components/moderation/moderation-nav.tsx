@@ -31,6 +31,7 @@ const GROUPS: Group[] = [
     label: "Moderação",
     tabs: [
       { href: "/admin/usuarios", label: "Usuários" },
+      { href: "/admin/denuncias", label: "Denúncias", adminOnly: true },
       { href: "/admin/conteudo", label: "Conteúdo", match: ["/admin/cursos", "/admin/simulados"] },
       { href: "/admin/tutorials", label: "Tutoriais" },
       { href: "/admin/instrutores", label: "Instrutores" },

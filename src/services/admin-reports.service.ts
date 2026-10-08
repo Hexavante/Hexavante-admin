@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { daysAgo } from "@/lib/dates";
-import { ACTION_LABELS } from "@/lib/moderation/log-labels";
+import { ACTION_LABELS, REPORT_REASON_LABELS } from "@/lib/moderation/log-labels";
 
 /** Chave de dia local YYYY-MM-DD. */
 function dayKey(d: Date): string {
@@ -102,14 +102,6 @@ export async function getModerationActions30d(): Promise<LabelCount[]> {
   }));
 }
 
-const REASON_LABELS: Record<string, string> = {
-  SPAM: "Spam",
-  HARASSMENT: "Assédio",
-  INAPPROPRIATE: "Inapropriado",
-  MISINFORMATION: "Desinformação",
-  OTHER: "Outro",
-};
-
 /** Denúncias por motivo (últimos 30 dias). */
 export async function getReportReasons30d(): Promise<LabelCount[]> {
   const since = daysAgo(30);
@@ -120,7 +112,7 @@ export async function getReportReasons30d(): Promise<LabelCount[]> {
   });
   return rows
     .map((r) => ({
-      name: REASON_LABELS[String(r.reason)] ?? String(r.reason),
+      name: REPORT_REASON_LABELS[String(r.reason)] ?? String(r.reason),
       value: r._count._all,
     }))
     .sort((a, b) => b.value - a.value);

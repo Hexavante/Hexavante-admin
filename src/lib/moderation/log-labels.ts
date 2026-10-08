@@ -49,3 +49,29 @@ export const ACTION_PILLS: Record<string, string> = {
 
 export const ACTION_PILL_BASE =
   "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold";
+
+/** Motivos de denúncia do feed (CommunityReport.reason). */
+export const REPORT_REASON_LABELS: Record<string, string> = {
+  SPAM: "Spam",
+  HARASSMENT: "Assédio",
+  INAPPROPRIATE: "Inapropriado",
+  MISINFORMATION: "Desinformação",
+  OTHER: "Outro",
+};
+
+/** Status de denúncia (CommunityReport.status). */
+export const REPORT_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pendente",
+  REVIEWED: "Revisada",
+  DISMISSED: "Dispensada",
+};
+
+/** Tipos de atividade social (SocialActivity.type). */
+export const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  COURSE_COMPLETED: "Curso concluído",
+  SIMULADO_PASSED: "Simulado",
+  LEVEL_UP: "Nível",
+  ACHIEVEMENT: "Conquista",
+  STREAK: "Sequência",
+  DISCUSSION: "Discussão",
+};
