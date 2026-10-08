@@ -244,8 +244,32 @@ export async function listModerationUsers(options: {
   status?: string;
   role?: string;
   limit?: number;
-}) {
+  page?: number;
+  /** Seleção explícita (ação em massa/export) — ignorada a paginação normal. */
+  ids?: string[];
+}): Promise<{
+  users: {
+    id: string;
+    username: string | null;
+    fullName: string;
+    avatarUrl: string | null;
+    level: number;
+    xp: number;
+    coins: number;
+    roles: string[];
+    isBanned: boolean;
+    isMuted: boolean;
+    warnings: number;
+    createdAt: Date;
+  }[];
+  page: number;
+  totalPages: number;
+  total: number;
+}> {
   const where: Prisma.UserWhereInput = {};
+  if (options.ids?.length) {
+    where.id = { in: options.ids };
+  }
   if (options.search) {
     const q = options.search.replace(/^@/, "");
     where.OR = [
@@ -263,9 +287,15 @@ export async function listModerationUsers(options: {
     where.mutesReceived = { some: { isActive: true } };
   }
 
+  const pageSize = clampTake(options.limit, 50, 200);
+  const total = await prisma.user.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const page = options.ids?.length ? 1 : Math.min(Math.max(1, options.page ?? 1), totalPages);
+
   const users = await prisma.user.findMany({
     where,
-    take: clampTake(options.limit, 50, 200),
+    skip: options.ids?.length ? undefined : (page - 1) * pageSize,
+    take: pageSize,
     orderBy: { createdAt: "desc" },
     include: {
       xp: true,
@@ -276,27 +306,46 @@ export async function listModerationUsers(options: {
     },
   });
 
-  return users.map((u) => ({
-    id: u.id,
-    username: u.username,
-    fullName: u.fullName,
-    avatarUrl: u.avatarUrl,
-    level: u.xp?.level ?? 1,
-    xp: u.xp?.totalXp ?? 0,
-    coins: u.coins,
-    roles: u.roles.map((r) => r.role.name),
-    isBanned: u.bansReceived.length > 0,
-    isMuted: u.mutesReceived.length > 0,
-    warnings: u._count.warningsReceived,
-    createdAt: u.createdAt,
-  }));
+  return {
+    page,
+    totalPages: options.ids?.length ? 1 : totalPages,
+    total: options.ids?.length ? users.length : total,
+    users: users.map((u) => ({
+      id: u.id,
+      username: u.username,
+      fullName: u.fullName,
+      avatarUrl: u.avatarUrl,
+      level: u.xp?.level ?? 1,
+      xp: u.xp?.totalXp ?? 0,
+      coins: u.coins,
+      roles: u.roles.map((r) => r.role.name),
+      isBanned: u.bansReceived.length > 0,
+      isMuted: u.mutesReceived.length > 0,
+      warnings: u._count.warningsReceived,
+      createdAt: u.createdAt,
+    })),
+  };
 }
 
 export async function listModerationLogs(options: {
   type?: string;
   search?: string;
   limit?: number;
-}) {
+  page?: number;
+}): Promise<{
+  logs: {
+    id: string;
+    action: ModerationLogType;
+    description: string;
+    createdAt: Date;
+    moderator: string | null;
+    targetUser: string | null;
+    metadata: unknown;
+  }[];
+  page: number;
+  totalPages: number;
+  total: number;
+}> {
   const where: Prisma.ModerationLogWhereInput = {};
   if (options.type && options.type !== "all") {
     where.action = options.type as ModerationLogType;
@@ -310,9 +359,15 @@ export async function listModerationLogs(options: {
     ];
   }
 
+  const pageSize = clampTake(options.limit, 100, 200);
+  const total = await prisma.moderationLog.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const page = Math.min(Math.max(1, options.page ?? 1), totalPages);
+
   const logs = await prisma.moderationLog.findMany({
     where,
-    take: clampTake(options.limit, 100, 200),
+    skip: (page - 1) * pageSize,
+    take: pageSize,
     orderBy: { createdAt: "desc" },
     include: {
       moderator: { select: { username: true, fullName: true } },
@@ -320,15 +375,20 @@ export async function listModerationLogs(options: {
     },
   });
 
-  return logs.map((log) => ({
-    id: log.id,
-    action: log.action,
-    description: log.description,
-    createdAt: log.createdAt,
-    moderator: log.moderator.username,
-    targetUser: log.targetUser?.username ?? null,
-    metadata: log.metadata,
-  }));
+  return {
+    page,
+    totalPages,
+    total,
+    logs: logs.map((log) => ({
+      id: log.id,
+      action: log.action,
+      description: log.description,
+      createdAt: log.createdAt,
+      moderator: log.moderator.username,
+      targetUser: log.targetUser?.username ?? null,
+      metadata: log.metadata,
+    })),
+  };
 }
 
 export async function getPlatformModerationStats() {
@@ -812,7 +872,7 @@ export async function executeModerationCommand(
       }
       case "/logs": {
         requireModAction("logs", roles);
-        const logs = await listModerationLogs({
+        const { logs } = await listModerationLogs({
           type: tokens[1] ?? "all",
           search: tokens[2],
           limit: 15,

@@ -8,7 +8,7 @@ export const GET = withApiErrorHandling(async (req) => {
   await requireBearerModerator(req);
   const { searchParams } = new URL(req.url);
 
-  const logs = await listModerationLogs({
+  const { logs } = await listModerationLogs({
     type: searchParams.get("type") ?? undefined,
     search: searchParams.get("search") ?? undefined,
     limit: readLimitParam(searchParams, 100, 200),

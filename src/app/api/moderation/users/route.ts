@@ -1,6 +1,6 @@
 import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate } from "@/lib/permissions";
-import { readLimitParam } from "@/lib/api-params";
+import { readLimitParam, readPageParam } from "@/lib/api-params";
 import { listModerationUsers } from "@/services/moderation-admin.service";
 import { NextResponse } from "next/server";
 
@@ -11,12 +11,20 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const users = await listModerationUsers({
+  const ids = (searchParams.get("ids") ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+    .slice(0, 200);
+
+  const result = await listModerationUsers({
     search: searchParams.get("search") ?? undefined,
     status: searchParams.get("status") ?? undefined,
     role: searchParams.get("role") ?? undefined,
-    limit: readLimitParam(searchParams, 50, 200),
+    limit: ids.length ? 200 : readLimitParam(searchParams, 50, 200),
+    page: readPageParam(searchParams),
+    ids: ids.length ? ids : undefined,
   });
 
-  return NextResponse.json({ users });
+  return NextResponse.json(result);
 }

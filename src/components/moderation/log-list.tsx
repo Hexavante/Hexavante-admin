@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Pagination } from "@/components/ui/pagination";
 import { ACTION_LABELS, ACTION_PILLS, ACTION_PILL_BASE } from "@/lib/moderation/log-labels";
 
 type Log = {
@@ -15,10 +16,19 @@ type Log = {
   targetUser: string | null;
 };
 
+type LogsResponse = {
+  logs: Log[];
+  page: number;
+  totalPages: number;
+  total: number;
+};
+
 export function LogList() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -26,11 +36,17 @@ export function LogList() {
     const params = new URLSearchParams();
     if (type !== "all") params.set("type", type);
     if (search) params.set("search", search);
+    params.set("page", String(page));
     const res = await fetch(`/api/moderation/logs?${params}`);
-    const data = (await res.json()) as { logs: Log[] };
+    const data = (await res.json()) as Partial<LogsResponse>;
     setLogs(data.logs ?? []);
+    setMeta({
+      page: data.page ?? page,
+      totalPages: data.totalPages ?? 1,
+      total: data.total ?? 0,
+    });
     setLoading(false);
-  }, [type, search]);
+  }, [type, search, page]);
 
   useEffect(() => {
     const t = setTimeout(() => void load(), 300);
@@ -44,11 +60,18 @@ export function LogList() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle>Logs de auditoria</CardTitle>
             <span className="text-xs text-slate-500">
-              {loading ? "Carregando..." : `${logs.length} registro${logs.length === 1 ? "" : "s"}`}
+              {loading ? "Carregando..." : `${meta.total} registro${meta.total === 1 ? "" : "s"}`}
             </span>
           </div>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Select value={type} onValueChange={setType} className="w-full sm:w-44">
+            <Select
+              value={type}
+              onValueChange={(v) => {
+                setType(v);
+                setPage(1);
+              }}
+              className="w-full sm:w-44"
+            >
               <SelectItem value="all">Todos os tipos</SelectItem>
               <SelectItem value="BAN">Ban</SelectItem>
               <SelectItem value="UNBAN">Unban</SelectItem>
@@ -63,7 +86,10 @@ export function LogList() {
               <Input
                 placeholder="Filtrar por usuário ou ação"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
               />
             </div>
           </div>
@@ -107,6 +133,16 @@ export function LogList() {
               ))
             )}
           </ul>
+
+          <div className="mt-4">
+            <Pagination
+              page={meta.page}
+              totalPages={meta.totalPages}
+              total={meta.total}
+              disabled={loading}
+              onPage={setPage}
+            />
+          </div>
         </div>
       </Card>
     </div>

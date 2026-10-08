@@ -27,6 +27,7 @@ export type ModUser = {
   isBanned: boolean;
   isMuted: boolean;
   warnings: number;
+  createdAt: string;
 };
 
 export type ModalType =
