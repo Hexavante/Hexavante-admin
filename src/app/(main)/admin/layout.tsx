@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const pathname = (await headers()).get("x-pathname") ?? "/admin";
 
   return (
-    <PageShell size="lg">
+    <PageShell size="lg" className="max-w-[1440px]">
       {/* Header */}
       <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <PageHeader

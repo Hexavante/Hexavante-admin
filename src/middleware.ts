@@ -19,9 +19,17 @@ export function middleware(req: NextRequest) {
 
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", pathname);
-  return NextResponse.next({
+  const res = NextResponse.next({
     request: { headers: requestHeaders },
   });
+
+  // Painel nunca deve ser cacheado pelo navegador: um HTML antigo após
+  // deploy aponta para chunks renomeados e a navegação client-side falha.
+  if (pathname.startsWith("/admin")) {
+    res.headers.set("Cache-Control", "no-store, max-age=0");
+  }
+
+  return res;
 }
 
 export const config = {

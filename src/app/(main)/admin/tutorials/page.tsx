@@ -53,7 +53,7 @@ export default async function AdminTutorialsPage() {
       </div>
 
       {/* Tabela como widget com header próprio */}
-      <Card padding="none" className="overflow-hidden">
+      <Card padding="none" className="overflow-hidden p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
           <CardTitle>Lista de tutoriais</CardTitle>
           <span className="text-xs text-slate-500">

@@ -72,7 +72,7 @@ export function UserTable() {
 
   return (
     <div className="space-y-4">
-      <Card padding="none" className="overflow-hidden">
+      <Card padding="none" className="overflow-hidden p-0">
         <div className="border-b border-white/10 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle>Usuários</CardTitle>
