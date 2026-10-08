@@ -21,7 +21,10 @@ const GROUPS: Group[] = [
   {
     id: "dashboard",
     label: "Dashboard",
-    tabs: [{ href: "/admin", label: "Visão Geral", exact: true }],
+    tabs: [
+      { href: "/admin", label: "Visão Geral", exact: true },
+      { href: "/admin/relatorios", label: "Relatórios", adminOnly: true },
+    ],
   },
   {
     id: "moderacao",
