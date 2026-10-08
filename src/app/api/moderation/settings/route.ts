@@ -1,15 +1,15 @@
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate } from "@/lib/permissions";
 import { getPlatformSettingsSnapshot } from "@/services/platform-settings.service";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id || !canModerate(session.user.roles)) {
+export async function GET() {
+  const session = await getAdminSession();
+  if (!session?.id || !canModerate(session.roles)) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
   }
 
-  const roles = session.user.roles ?? [];
+  const roles = session.roles ?? [];
   const isSuperAdmin = roles.includes("SUPERADMIN");
   const settings = await getPlatformSettingsSnapshot();
 

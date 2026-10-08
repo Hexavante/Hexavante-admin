@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate } from "@/lib/permissions";
 import { executeModerationCommand } from "@/services/moderation-admin.service";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id || !canModerate(session.user.roles)) {
+  const session = await getAdminSession();
+  if (!session?.id || !canModerate(session.roles)) {
     return NextResponse.json({ status: "error", message: "Não autorizado." }, { status: 403 });
   }
 
@@ -17,8 +17,8 @@ export async function POST(request: Request) {
   try {
     const result = await executeModerationCommand(
       body.command,
-      session.user.id,
-      session.user.roles ?? [],
+      session.id,
+      session.roles ?? [],
     );
     return NextResponse.json(result);
   } catch (error) {

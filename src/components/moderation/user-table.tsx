@@ -17,6 +17,7 @@ import {
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
+import { Card, CardTitle } from "@/components/ui/card";
 import { UserActionModals, type ModUser, type ModalType } from "./action-modals";
 import { APP_URL } from "@/lib/app-url";
 import { impersonateUser } from "@/app/actions/impersonate";
@@ -71,154 +72,164 @@ export function UserTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="w-full min-w-0 sm:flex-1">
-          <Input
-            placeholder="Buscar por nome ou @username"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <Card padding="none" className="overflow-hidden">
+        <div className="border-b border-white/10 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle>Usuários</CardTitle>
+            <span className="text-xs text-slate-500">
+              {loading ? "Carregando..." : `${users.length} resultado${users.length === 1 ? "" : "s"}`}
+            </span>
+          </div>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="w-full min-w-0 sm:flex-1">
+              <Input
+                placeholder="Buscar por nome ou @username"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select value={status} onValueChange={setStatus} className="w-full sm:w-44">
+              <SelectItem value="all">Todos os status</SelectItem>
+              <SelectItem value="banned">Banidos</SelectItem>
+              <SelectItem value="muted">Silenciados</SelectItem>
+            </Select>
+            <Select value={role} onValueChange={setRole} className="w-full sm:w-44">
+              <SelectItem value="all">Todos os cargos</SelectItem>
+              <SelectItem value="SUPERADMIN">Superadmin</SelectItem>
+              <SelectItem value="ADMIN">Admin</SelectItem>
+              <SelectItem value="MODERATOR">Moderador</SelectItem>
+              <SelectItem value="INSTRUCTOR">Instrutor</SelectItem>
+              <SelectItem value="USER">Usuário</SelectItem>
+            </Select>
+          </div>
         </div>
-        <Select value={status} onValueChange={setStatus} className="w-full sm:w-44">
-          <SelectItem value="all">Todos os status</SelectItem>
-          <SelectItem value="banned">Banidos</SelectItem>
-          <SelectItem value="muted">Silenciados</SelectItem>
-        </Select>
-        <Select value={role} onValueChange={setRole} className="w-full sm:w-44">
-          <SelectItem value="all">Todos os cargos</SelectItem>
-          <SelectItem value="SUPERADMIN">Superadmin</SelectItem>
-          <SelectItem value="ADMIN">Admin</SelectItem>
-          <SelectItem value="MODERATOR">Moderador</SelectItem>
-          <SelectItem value="INSTRUCTOR">Instrutor</SelectItem>
-          <SelectItem value="USER">Usuário</SelectItem>
-        </Select>
-      </div>
 
-      <div className="overflow-x-auto rounded-xl border border-white/10">
-        <table className="w-full min-w-[900px] text-left text-sm">
-          <thead className="border-b border-white/10 bg-white/[0.04] text-slate-400">
-            <tr>
-              <th className="px-4 py-3">Usuário</th>
-              <th className="px-4 py-3">Nível</th>
-              <th className="px-4 py-3">XP</th>
-              <th className="px-4 py-3">Moedas</th>
-              <th className="px-4 py-3">Cargo</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] text-left text-sm">
+            <thead className="border-b border-white/10 bg-white/[0.04] text-slate-400">
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                  Carregando...
-                </td>
+                <th className="px-4 py-3">Usuário</th>
+                <th className="px-4 py-3">Nível</th>
+                <th className="px-4 py-3">XP</th>
+                <th className="px-4 py-3">Moedas</th>
+                <th className="px-4 py-3">Cargo</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Ações</th>
               </tr>
-            ) : users.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                  Nenhum usuário encontrado.
-                </td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id} className="border-b border-white/5 hover:bg-white/[0.03]">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar src={user.avatarUrl} alt={user.username ?? ""} size="sm" />
-                      <div>
-                        <p className="font-medium text-white">@{user.username}</p>
-                        <p className="text-xs text-slate-500">{user.fullName}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-300">{user.level}</td>
-                  <td className="px-4 py-3 text-slate-300">{user.xp}</td>
-                  <td className="px-4 py-3 text-slate-300">{user.coins}</td>
-                  <td className="px-4 py-3 text-slate-300">{user.roles.join(", ") || "USER"}</td>
-                  <td className="px-4 py-3">
-                    {user.isBanned ? (
-                      <span className="text-red-400">Banido</span>
-                    ) : user.isMuted ? (
-                      <span className="text-amber-400">Silenciado</span>
-                    ) : (
-                      <span className="text-green-400">Ativo</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      <ActionBtn
-                        icon={Eye}
-                        label="Perfil"
-                        onClick={() => window.open(`${APP_URL}/perfil/${user.username}`, "_blank")}
-                      />
-                      {canImpersonate &&
-                      !user.roles.some((r) => ["MODERATOR", "ADMIN", "SUPERADMIN"].includes(r)) ? (
-                        <ActionBtn
-                          icon={UserRound}
-                          label="Ver como"
-                          onClick={() => void impersonate(user)}
-                        />
-                      ) : null}
-                      <ActionBtn icon={Plus} label="XP" onClick={() => openModal(user, "addxp")} />
-                      <ActionBtn
-                        icon={Shield}
-                        label="Cargo"
-                        onClick={() => openModal(user, "cargo")}
-                      />
-                      <ActionBtn
-                        icon={AlertTriangle}
-                        label="Aviso"
-                        onClick={() => openModal(user, "warn")}
-                      />
-
-                      {user.isMuted ? (
-                        <ActionBtn
-                          icon={Volume2}
-                          label="Remover silêncio"
-                          onClick={() => openModal(user, "unmute")}
-                        />
-                      ) : (
-                        <ActionBtn
-                          icon={VolumeX}
-                          label="Silenciar"
-                          onClick={() => openModal(user, "mute")}
-                        />
-                      )}
-
-                      {user.isBanned ? (
-                        <ActionBtn
-                          icon={CheckCircle}
-                          label="Desbanir"
-                          onClick={() => openModal(user, "unban")}
-                        />
-                      ) : (
-                        <ActionBtn
-                          icon={Ban}
-                          label="Banir"
-                          onClick={() => openModal(user, "ban")}
-                        />
-                      )}
-
-                      <ActionBtn
-                        icon={Trash2}
-                        label="Limpar perfil"
-                        onClick={() => openModal(user, "deleteProfile")}
-                      />
-                      <ActionBtn
-                        icon={XCircle}
-                        label="Excluir conta"
-                        danger
-                        onClick={() => openModal(user, "deleteUser")}
-                      />
-                    </div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                    Carregando...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                    Nenhum usuário encontrado.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="border-b border-white/5 hover:bg-white/[0.03]">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar src={user.avatarUrl} alt={user.username ?? ""} size="sm" />
+                        <div>
+                          <p className="font-medium text-white">@{user.username}</p>
+                          <p className="text-xs text-slate-500">{user.fullName}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-300">{user.level}</td>
+                    <td className="px-4 py-3 text-slate-300">{user.xp}</td>
+                    <td className="px-4 py-3 text-slate-300">{user.coins}</td>
+                    <td className="px-4 py-3 text-slate-300">{user.roles.join(", ") || "USER"}</td>
+                    <td className="px-4 py-3">
+                      {user.isBanned ? (
+                        <span className="text-red-400">Banido</span>
+                      ) : user.isMuted ? (
+                        <span className="text-amber-400">Silenciado</span>
+                      ) : (
+                        <span className="text-green-400">Ativo</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        <ActionBtn
+                          icon={Eye}
+                          label="Perfil"
+                          onClick={() => window.open(`${APP_URL}/perfil/${user.username}`, "_blank")}
+                        />
+                        {canImpersonate &&
+                        !user.roles.some((r) => ["MODERATOR", "ADMIN", "SUPERADMIN"].includes(r)) ? (
+                          <ActionBtn
+                            icon={UserRound}
+                            label="Ver como"
+                            onClick={() => void impersonate(user)}
+                          />
+                        ) : null}
+                        <ActionBtn icon={Plus} label="XP" onClick={() => openModal(user, "addxp")} />
+                        <ActionBtn
+                          icon={Shield}
+                          label="Cargo"
+                          onClick={() => openModal(user, "cargo")}
+                        />
+                        <ActionBtn
+                          icon={AlertTriangle}
+                          label="Aviso"
+                          onClick={() => openModal(user, "warn")}
+                        />
+
+                        {user.isMuted ? (
+                          <ActionBtn
+                            icon={Volume2}
+                            label="Remover silêncio"
+                            onClick={() => openModal(user, "unmute")}
+                          />
+                        ) : (
+                          <ActionBtn
+                            icon={VolumeX}
+                            label="Silenciar"
+                            onClick={() => openModal(user, "mute")}
+                          />
+                        )}
+
+                        {user.isBanned ? (
+                          <ActionBtn
+                            icon={CheckCircle}
+                            label="Desbanir"
+                            onClick={() => openModal(user, "unban")}
+                          />
+                        ) : (
+                          <ActionBtn
+                            icon={Ban}
+                            label="Banir"
+                            onClick={() => openModal(user, "ban")}
+                          />
+                        )}
+
+                        <ActionBtn
+                          icon={Trash2}
+                          label="Limpar perfil"
+                          onClick={() => openModal(user, "deleteProfile")}
+                        />
+                        <ActionBtn
+                          icon={XCircle}
+                          label="Excluir conta"
+                          danger
+                          onClick={() => openModal(user, "deleteUser")}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       <UserActionModals
         user={selected}

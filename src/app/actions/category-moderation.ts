@@ -1,14 +1,21 @@
 "use server";
 
-import { auth } from "@/auth";
-import { canModerate } from "@/lib/permissions";
+import {
+  AuthRequiredError,
+  requireModeratorAccount,
+} from "@/lib/moderation/guards";
 import { approveCategory, rejectCategory } from "@/services/course.service";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
+/** Actions invocadas via <form action>: sessão expirada → volta para o login. */
 async function requireModerator() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Faça login para continuar.");
-  if (!canModerate(session.user.roles)) throw new Error("Acesso restrito a moderadores.");
+  try {
+    return await requireModeratorAccount();
+  } catch (error) {
+    if (error instanceof AuthRequiredError) redirect("/admin-login");
+    throw error;
+  }
 }
 
 export async function approveCategoryAction(categoryId: string) {

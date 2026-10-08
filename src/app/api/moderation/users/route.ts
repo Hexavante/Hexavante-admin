@@ -1,11 +1,12 @@
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate } from "@/lib/permissions";
+import { readLimitParam } from "@/lib/api-params";
 import { listModerationUsers } from "@/services/moderation-admin.service";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id || !canModerate(session.user.roles)) {
+  const session = await getAdminSession();
+  if (!session?.id || !canModerate(session.roles)) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
   }
 
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     search: searchParams.get("search") ?? undefined,
     status: searchParams.get("status") ?? undefined,
     role: searchParams.get("role") ?? undefined,
-    limit: Number(searchParams.get("limit") ?? 50),
+    limit: readLimitParam(searchParams, 50, 200),
   });
 
   return NextResponse.json({ users });

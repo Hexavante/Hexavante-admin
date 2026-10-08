@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useActionState } from "react";
 import { adminResendCodeAction, adminVerifyAction } from "@/app/actions/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Shield, KeyRound } from "lucide-react";
+import { KeyRound } from "lucide-react";
 
 export default function AdminVerifyPage({ searchParams }: { searchParams: Promise<{ email?: string }> }) {
   const { email = "" } = use(searchParams);
@@ -24,10 +24,15 @@ export default function AdminVerifyPage({ searchParams }: { searchParams: Promis
     null,
   );
 
-  if (state?.ok) {
-    if (typeof window !== "undefined") {
+  // Redirect é efeito colateral: roda só no cliente, após o render
+  // (no corpo do render quebrava o React Compiler e reexecutava a cada render).
+  useEffect(() => {
+    if (state?.ok) {
       window.location.href = "/admin";
     }
+  }, [state?.ok]);
+
+  if (state?.ok) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
         <p className="text-slate-400">Verificado! Redirecionando...</p>

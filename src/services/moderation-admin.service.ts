@@ -1,4 +1,5 @@
 import { applyXp, xpRequiredForLevel } from "@/lib/gamification";
+import { clampTake } from "@/lib/api-params";
 import { requireModAction } from "@/lib/moderation/permissions";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/services/notification.service";
@@ -46,6 +47,23 @@ function parseDuration(raw?: string): Date | null {
   return new Date(Date.now() + ms);
 }
 
+/**
+ * Valores numéricos de comandos precisam ser inteiros estritos.
+ * `Number("abc")` = NaN seguia até o Prisma e corrompia XP/moedas
+ * (ex: `/removexp @user abc` gravava `totalXp: NaN`).
+ */
+function parsePositiveInt(raw: string | undefined, label: string): number {
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0) throw new Error(`${label} inválido.`);
+  return value;
+}
+
+function parseNonNegativeInt(raw: string | undefined, label: string): number {
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0) throw new Error(`${label} inválido.`);
+  return value;
+}
+
 async function findUserByUsername(username: string) {
   const user = await prisma.user.findUnique({
     where: { username },
@@ -61,14 +79,18 @@ async function findUserByUsername(username: string) {
   return user;
 }
 
-export async function writeModerationLog(input: {
-  moderatorId: string;
-  targetUserId?: string | null;
-  action: ModerationLogType;
-  description: string;
-  metadata?: Prisma.InputJsonValue;
-}) {
-  return prisma.moderationLog.create({ data: input });
+export async function writeModerationLog(
+  input: {
+    moderatorId: string;
+    targetUserId?: string | null;
+    action: ModerationLogType;
+    description: string;
+    metadata?: Prisma.InputJsonValue;
+  },
+  /** Aceita um client de transação para operações atômicas (delete + log). */
+  db: Pick<Prisma.TransactionClient, "moderationLog"> = prisma,
+) {
+  return db.moderationLog.create({ data: input });
 }
 
 async function adminAdjustXp(
@@ -81,6 +103,7 @@ async function adminAdjustXp(
   permission: string,
 ) {
   requireModAction(permission, roles);
+  if (!Number.isFinite(delta)) throw new Error("Valor de XP inválido.");
 
   let userXp = await prisma.userXP.findUnique({ where: { userId } });
   if (!userXp) {
@@ -152,6 +175,7 @@ async function adminAdjustCoins(
   permission: string,
 ) {
   requireModAction(permission, roles);
+  if (!Number.isFinite(delta)) throw new Error("Valor de moedas inválido.");
 
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { coins: true } });
   if (!user) throw new Error("Usuário não encontrado.");
@@ -241,7 +265,7 @@ export async function listModerationUsers(options: {
 
   const users = await prisma.user.findMany({
     where,
-    take: options.limit ?? 50,
+    take: clampTake(options.limit, 50, 200),
     orderBy: { createdAt: "desc" },
     include: {
       xp: true,
@@ -288,7 +312,7 @@ export async function listModerationLogs(options: {
 
   const logs = await prisma.moderationLog.findMany({
     where,
-    take: options.limit ?? 100,
+    take: clampTake(options.limit, 100, 200),
     orderBy: { createdAt: "desc" },
     include: {
       moderator: { select: { username: true, fullName: true } },
@@ -433,8 +457,7 @@ export async function executeModerationCommand(
       }
       case "/addxp": {
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const amount = Number(tokens[2]);
-        if (!Number.isFinite(amount) || amount <= 0) throw new Error("Valor de XP inválido.");
+        const amount = parsePositiveInt(tokens[2], "Valor de XP");
         const result = await adminAdjustXp(
           moderatorId,
           roles,
@@ -451,7 +474,7 @@ export async function executeModerationCommand(
       }
       case "/removexp": {
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const amount = Number(tokens[2]);
+        const amount = parsePositiveInt(tokens[2], "Valor de XP");
         const result = await adminAdjustXp(
           moderatorId,
           roles,
@@ -468,7 +491,7 @@ export async function executeModerationCommand(
       }
       case "/setxp": {
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const amount = Number(tokens[2]);
+        const amount = parseNonNegativeInt(tokens[2], "Valor de XP");
         const result = await adminAdjustXp(
           moderatorId,
           roles,
@@ -486,11 +509,11 @@ export async function executeModerationCommand(
       case "/setlevel": {
         requireModAction("setlevel", roles);
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const level = Number(tokens[2]);
-        if (!Number.isFinite(level) || level < 1) throw new Error("Nível inválido.");
+        const level = parsePositiveInt(tokens[2], "Nível");
+        if (level > 999) throw new Error("Nível máximo é 999.");
         let total = 0;
         for (let l = 1; l < level; l++) total += xpRequiredForLevel(l);
-        const result = await adminAdjustXp(
+        await adminAdjustXp(
           moderatorId,
           roles,
           user.id,
@@ -513,7 +536,7 @@ export async function executeModerationCommand(
       }
       case "/addmoedas": {
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const amount = Number(tokens[2]);
+        const amount = parsePositiveInt(tokens[2], "Valor de moedas");
         const result = await adminAdjustCoins(
           moderatorId,
           roles,
@@ -530,7 +553,7 @@ export async function executeModerationCommand(
       }
       case "/removemoedas": {
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const amount = Number(tokens[2]);
+        const amount = parsePositiveInt(tokens[2], "Valor de moedas");
         const result = await adminAdjustCoins(
           moderatorId,
           roles,
@@ -547,7 +570,7 @@ export async function executeModerationCommand(
       }
       case "/setmoedas": {
         const user = await findUserByUsername(parseUsername(tokens[1]));
-        const amount = Number(tokens[2]);
+        const amount = parseNonNegativeInt(tokens[2], "Valor de moedas");
         const result = await adminAdjustCoins(
           moderatorId,
           roles,
@@ -710,14 +733,17 @@ export async function executeModerationCommand(
         const message = parseQuoted(tokens.slice(1).join(" ")) || tokens.slice(1).join(" ");
         if (!message) throw new Error("Informe a mensagem entre aspas.");
         const users = await prisma.user.findMany({ select: { id: true } });
-        await prisma.notification.createMany({
-          data: users.map((u) => ({
-            userId: u.id,
-            type: "SYSTEM_ANNOUNCEMENT" as const,
-            title: "Aviso da plataforma",
-            message,
-          })),
-        });
+        const rows = users.map((u) => ({
+          userId: u.id,
+          type: "SYSTEM_ANNOUNCEMENT" as const,
+          title: "Aviso da plataforma",
+          message,
+        }));
+        // createMany em lotes: um único lote com todos os usuários estoura
+        // o limite de placeholders do MySQL (~16k usuários × 5 campos).
+        for (let i = 0; i < rows.length; i += 1000) {
+          await prisma.notification.createMany({ data: rows.slice(i, i + 1000) });
+        }
         await writeModerationLog({
           moderatorId,
           action: "BROADCAST",
@@ -754,7 +780,11 @@ export async function executeModerationCommand(
       }
       case "/booster": {
         requireModAction("boosterglobal", roles);
-        const multiplier = Number(tokens[1]?.replace(/x/i, "")) || 2;
+        const rawMultiplier = tokens[1]?.replace(/x/i, "");
+        const multiplier = rawMultiplier === undefined ? 2 : Number(rawMultiplier);
+        if (!Number.isInteger(multiplier) || multiplier < 1 || multiplier > 100) {
+          throw new Error("Multiplicador inválido. Use um inteiro entre 1 e 100 (ex: 2x, 3x).");
+        }
         const duration = parseDuration(tokens[2] ?? "24h");
         if (!duration) throw new Error("Informe duração (ex: 24h, 7d).");
         await prisma.platformSetting.upsert({
@@ -901,7 +931,9 @@ export async function executeModerationCommand(
           await prisma.tutorial.update({ where: { id: tutorial.id }, data: { isPublished: publish } });
           await writeModerationLog({
             moderatorId,
-            action: publish ? "COURSE_PUBLISH" : "COURSE_UNPUBLISH",
+            // Enum não tem tipo de tutorial; logar como COURSE_PUBLISH
+            // mistura tutorial com curso nas telas de auditoria.
+            action: "OTHER",
             description: `${publish ? "Publicou" : "Despublicou"} tutorial ${tutorial.title}`,
             metadata: { tutorialId: tutorial.id },
           });

@@ -1,18 +1,15 @@
 "use server";
 
-import { auth } from "@/auth";
-import { canModerate } from "@/lib/permissions";
+import { requireModeratorAccount } from "@/lib/moderation/guards";
 import { prisma } from "@/lib/prisma";
 import { updateUserWithRetry } from "@/lib/retry-update";
 import { revalidatePath } from "next/cache";
 
 export type ModActionResult = { success: boolean; error?: string; message?: string };
 
+/** Sessão do painel (hx_admin_session) — erros viram ActionResult nos catches abaixo. */
 async function requireModerator() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Faça login para continuar.");
-  if (!canModerate(session.user.roles)) throw new Error("Sem permissão de moderador.");
-  return session.user;
+  return requireModeratorAccount();
 }
 
 function parseDuration(str?: string): Date | null {

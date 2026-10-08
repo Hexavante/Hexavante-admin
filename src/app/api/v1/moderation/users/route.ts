@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withApiErrorHandling } from "@/lib/api-error";
 import { requireBearerModerator } from "@/lib/api-auth";
+import { readLimitParam } from "@/lib/api-params";
 import { listModerationUsers } from "@/services/moderation-admin.service";
 
 export const GET = withApiErrorHandling(async (req) => {
@@ -11,7 +12,7 @@ export const GET = withApiErrorHandling(async (req) => {
     search: searchParams.get("search") ?? undefined,
     status: searchParams.get("status") ?? undefined,
     role: searchParams.get("role") ?? undefined,
-    limit: Number(searchParams.get("limit") ?? 50),
+    limit: readLimitParam(searchParams, 50, 200),
   });
 
   return NextResponse.json({ users });

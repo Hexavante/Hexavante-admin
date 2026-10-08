@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate, isAdmin } from "@/lib/permissions";
 
 export type ModeratorAccount = {
@@ -7,32 +7,57 @@ export type ModeratorAccount = {
   roles: string[];
 };
 
-export async function requireModeratorAccount(): Promise<ModeratorAccount> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Faça login para continuar.");
+/** Sessão admin ausente/expirada — o chamador pode redirecionar para /admin-login. */
+export class AuthRequiredError extends Error {
+  constructor(message = "Faça login para continuar.") {
+    super(message);
+    this.name = "AuthRequiredError";
   }
-  if (!canModerate(session.user.roles)) {
-    throw new Error("Acesso restrito a moderadores e administradores.");
+}
+
+/** Sessão válida, mas papel insuficiente. */
+export class ForbiddenError extends Error {
+  constructor(message = "Acesso restrito a moderadores e administradores.") {
+    super(message);
+    this.name = "ForbiddenError";
+  }
+}
+
+/**
+ * Guardas do painel admin.
+ *
+ * A autorização usa a sessão do painel (`hx_admin_session`, lida do banco via
+ * getAdminSession) — e NÃO a sessão da plataforma (API), porque o login do
+ * painel (e-mail + código) não cria sessão da plataforma. Usar a sessão da
+ * plataforma aqui fazia actions falharem com "Faça login" para administradores
+ * autenticados no painel.
+ */
+export async function requireModeratorAccount(): Promise<ModeratorAccount> {
+  const session = await getAdminSession();
+  if (!session) {
+    throw new AuthRequiredError();
+  }
+  if (!canModerate(session.roles)) {
+    throw new ForbiddenError();
   }
   return {
-    id: session.user.id,
-    username: session.user.username,
-    roles: session.user.roles ?? [],
+    id: session.id,
+    username: session.username,
+    roles: session.roles,
   };
 }
 
 export async function requireAdminAccount(): Promise<ModeratorAccount> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Faça login para continuar.");
+  const session = await getAdminSession();
+  if (!session) {
+    throw new AuthRequiredError("Faça login para continuar.");
   }
-  if (!isAdmin(session.user.roles)) {
-    throw new Error("Acesso restrito a administradores.");
+  if (!isAdmin(session.roles)) {
+    throw new ForbiddenError("Acesso restrito a administradores.");
   }
   return {
-    id: session.user.id,
-    username: session.user.username,
-    roles: session.user.roles ?? [],
+    id: session.id,
+    username: session.username,
+    roles: session.roles,
   };
 }

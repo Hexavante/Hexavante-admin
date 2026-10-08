@@ -1,7 +1,10 @@
 "use server";
 
 import { auth } from "@/auth";
-import { requireModeratorAccount } from "@/lib/moderation/guards";
+import {
+  AuthRequiredError,
+  requireModeratorAccount,
+} from "@/lib/moderation/guards";
 import { isInstructor } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { courseModerationSchema, instructorApplicationSchema } from "@/lib/validations/moderation";
@@ -16,15 +19,26 @@ import {
   deleteCourseByModerator,
   deleteExamByModerator,
 } from "@/services/content-moderation.service";
+import { writeModerationLog } from "@/services/moderation-admin.service";
 import { setExamPublished } from "@/services/exam-admin.service";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export type ActionResult = { success: boolean; error?: string; message?: string };
 
+/** Guarda para actions invocadas via <form action>: sessão expirada → login. */
+async function requireModeratorOrRedirect() {
+  try {
+    return await requireModeratorAccount();
+  } catch (error) {
+    if (error instanceof AuthRequiredError) redirect("/admin-login");
+    throw error;
+  }
+}
+
+/** Guarda para actions com try/catch próprio (erro vira ActionResult). */
 async function requireModerator() {
-  const user = await requireModeratorAccount();
-  return user;
+  return requireModeratorAccount();
 }
 
 export async function applyInstructorAction(
@@ -64,8 +78,14 @@ export async function applyInstructorAction(
 }
 
 export async function approveInstructorAction(applicationId: string) {
-  const moderator = await requireModerator();
-  await reviewInstructorApplication(applicationId, moderator.id, true);
+  const moderator = await requireModeratorOrRedirect();
+  try {
+    await reviewInstructorApplication(applicationId, moderator.id, true);
+  } catch (error) {
+    // Ex.: candidatura já analisada em outra aba. Loga e segue — voltar para a
+    // lista sem derrubar a página evita o loop de error boundary no reenvio.
+    console.error("[approveInstructorAction]", error);
+  }
   revalidatePath("/moderacao");
   revalidatePath("/admin/instrutores");
 }
@@ -184,16 +204,24 @@ export async function toggleExamPublishAction(examId: string): Promise<ActionRes
   }
 }
 
-export async function resubmitCourseAction(courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id || !isInstructor(session.user.roles)) {
-    throw new Error("Sem permissão.");
-  }
+export async function resubmitCourseAction(courseId: string): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || !isInstructor(session.user.roles)) {
+      return { success: false, error: "Sem permissão." };
+    }
 
-  await submitCourseForReview(courseId, session.user.id);
-  revalidatePath(`/instructor/courses/${courseId}/edit`);
-  revalidatePath("/instructor/courses");
-  revalidatePath("/admin/cursos");
+    await submitCourseForReview(courseId, session.user.id);
+    revalidatePath(`/instructor/courses/${courseId}/edit`);
+    revalidatePath("/instructor/courses");
+    revalidatePath("/admin/cursos");
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro ao reenviar curso para revisão",
+    };
+  }
 }
 
 function revalidateCoursePaths() {
@@ -210,30 +238,37 @@ function revalidateExamPaths() {
 }
 
 export async function deleteCourseModeratorAction(courseId: string) {
-  const moderator = await requireModerator();
+  const moderator = await requireModeratorOrRedirect();
   await deleteCourseByModerator(courseId, moderator.id);
   revalidateCoursePaths();
   redirect("/admin/conteudo");
 }
 
 export async function deleteExamModeratorAction(examId: string) {
-  const moderator = await requireModerator();
+  const moderator = await requireModeratorOrRedirect();
   await deleteExamByModerator(examId, moderator.id);
   revalidateExamPaths();
   redirect("/admin/simulados");
 }
 
 export async function toggleTutorialPublishAction(tutorialId: string) {
-  await requireModerator();
+  const moderator = await requireModeratorOrRedirect();
   const tutorial = await prisma.tutorial.findUnique({
     where: { id: tutorialId },
-    select: { isPublished: true },
+    select: { isPublished: true, title: true },
   });
   if (!tutorial) redirect("/admin/tutorials");
 
+  const publish = !tutorial.isPublished;
   await prisma.tutorial.update({
     where: { id: tutorialId },
-    data: { isPublished: !tutorial.isPublished },
+    data: { isPublished: publish },
+  });
+  await writeModerationLog({
+    moderatorId: moderator.id,
+    action: "OTHER",
+    description: `${publish ? "Publicou" : "Despublicou"} tutorial "${tutorial.title}"`,
+    metadata: { tutorialId },
   });
 
   revalidatePath("/admin/tutorials");
@@ -242,7 +277,7 @@ export async function toggleTutorialPublishAction(tutorialId: string) {
 }
 
 export async function deleteTutorialModeratorAction(tutorialId: string) {
-  const moderator = await requireModerator();
+  const moderator = await requireModeratorOrRedirect();
   const tutorial = await prisma.tutorial.findUnique({ where: { id: tutorialId } });
   if (!tutorial) redirect("/admin/tutorials");
 

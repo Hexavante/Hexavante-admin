@@ -16,14 +16,20 @@ export async function deleteCourseByModerator(courseId: string, moderatorId: str
     throw new Error("Curso não encontrado.");
   }
 
-  await prisma.course.delete({ where: { id: courseId } });
-
-  await writeModerationLog({
-    moderatorId,
-    targetUserId: course.instructors[0]?.userId ?? null,
-    action: "OTHER",
-    description: `Removeu curso "${course.title}"`,
-    metadata: { courseId, slug: course.slug },
+  // Delete + auditoria atômicos: um delete sem log (ou log sem delete)
+  // quebrava a rastreabilidade da moderação.
+  await prisma.$transaction(async (tx) => {
+    await tx.course.delete({ where: { id: courseId } });
+    await writeModerationLog(
+      {
+        moderatorId,
+        targetUserId: course.instructors[0]?.userId ?? null,
+        action: "OTHER",
+        description: `Removeu curso "${course.title}"`,
+        metadata: { courseId, slug: course.slug },
+      },
+      tx,
+    );
   });
 }
 
@@ -37,13 +43,17 @@ export async function deleteExamByModerator(examId: string, moderatorId: string)
     throw new Error("Simulado não encontrado.");
   }
 
-  await prisma.exam.delete({ where: { id: examId } });
-
-  await writeModerationLog({
-    moderatorId,
-    targetUserId: null,
-    action: "OTHER",
-    description: `Removeu simulado "${exam.title}"`,
-    metadata: { examId, slug: exam.slug },
+  await prisma.$transaction(async (tx) => {
+    await tx.exam.delete({ where: { id: examId } });
+    await writeModerationLog(
+      {
+        moderatorId,
+        targetUserId: null,
+        action: "OTHER",
+        description: `Removeu simulado "${exam.title}"`,
+        metadata: { examId, slug: exam.slug },
+      },
+      tx,
+    );
   });
 }

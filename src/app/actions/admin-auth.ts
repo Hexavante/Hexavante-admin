@@ -20,8 +20,15 @@ async function getUserRoles(userId: string): Promise<string[]> {
 
 export async function adminLoginAction(email: string, password: string): Promise<AdminAuthResult> {
   try {
+    const normalized = email.toLowerCase().trim();
+
+    // Anti brute-force: 10 tentativas a cada 10 minutos por e-mail
+    if (!rateLimit(`admin-login:${normalized}`, { maxRequests: 10, windowMs: 10 * 60_000 })) {
+      return { ok: false, error: "Muitas tentativas. Aguarde 10 minutos." };
+    }
+
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: normalized },
       select: { id: true, email: true, passwordHash: true },
     });
     if (!user) return { ok: false, error: "E-mail ou senha incorretos." };
@@ -100,6 +107,13 @@ const RESEND_COOLDOWN_MS = 60_000;
 export async function adminResendCodeAction(email: string): Promise<AdminAuthResult> {
   try {
     const normalized = email.toLowerCase().trim();
+
+    // Anti abuso: 5 reenvios a cada 10 minutos por e-mail
+    // (complementa o cooldown de 60s por registro abaixo)
+    if (!rateLimit(`admin-resend:${normalized}`, { maxRequests: 5, windowMs: 10 * 60_000 })) {
+      return { ok: false, error: "Muitas solicitações. Aguarde 10 minutos." };
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: normalized },
       select: { id: true, email: true },

@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id || !canModerate(session.user.roles)) {
+  const session = await getAdminSession();
+  if (!session?.id || !canModerate(session.roles)) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
   }
 

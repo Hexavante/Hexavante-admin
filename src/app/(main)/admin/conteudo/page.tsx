@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { ContentPublishToggle } from "@/components/moderation/content-publish-toggle";
 import { DeleteContentButton } from "@/components/courses/delete-content-button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_URL } from "@/lib/app-url";
 import {
   deleteCourseModeratorAction,
@@ -73,13 +74,13 @@ export default async function ModerationContentPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">Cursos</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Cursos</CardTitle>
             <Link href="/admin/cursos" className="text-sm hx-accent-link hover:underline">
               Fila de pendentes →
             </Link>
-          </div>
+          </CardHeader>
           <ul className="space-y-2">
             {courses.map((course) => (
               <li
@@ -124,15 +125,15 @@ export default async function ModerationContentPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </Card>
 
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">Simulados</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Simulados</CardTitle>
             <Link href="/admin/simulados" className="text-sm hx-accent-link hover:underline">
               Gerenciar todos →
             </Link>
-          </div>
+          </CardHeader>
           <ul className="space-y-2">
             {exams.map((exam) => (
               <li
@@ -173,7 +174,7 @@ export default async function ModerationContentPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </Card>
       </div>
 
       <section className="rounded-xl border border-rose-400/20 bg-rose-400/5 p-5">

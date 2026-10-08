@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
+import { Card, CardTitle } from "@/components/ui/card";
 
 type Log = {
   id: string;
@@ -87,64 +88,76 @@ export function LogList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Select value={type} onValueChange={setType} className="w-full sm:w-44">
-          <SelectItem value="all">Todos os tipos</SelectItem>
-          <SelectItem value="BAN">Ban</SelectItem>
-          <SelectItem value="UNBAN">Unban</SelectItem>
-          <SelectItem value="MUTE">Mute</SelectItem>
-          <SelectItem value="WARN">Advertência</SelectItem>
-          <SelectItem value="XP_ADD">XP</SelectItem>
-          <SelectItem value="COIN_ADD">Moedas</SelectItem>
-          <SelectItem value="ROLE_ADD">Cargo</SelectItem>
-          <SelectItem value="BROADCAST">Broadcast</SelectItem>
-        </Select>
-        <div className="w-full min-w-0 sm:flex-1">
-          <Input
-            placeholder="Filtrar por usuário ou ação"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <Card padding="none" className="overflow-hidden">
+        <div className="border-b border-white/10 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle>Logs de auditoria</CardTitle>
+            <span className="text-xs text-slate-500">
+              {loading ? "Carregando..." : `${logs.length} registro${logs.length === 1 ? "" : "s"}`}
+            </span>
+          </div>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Select value={type} onValueChange={setType} className="w-full sm:w-44">
+              <SelectItem value="all">Todos os tipos</SelectItem>
+              <SelectItem value="BAN">Ban</SelectItem>
+              <SelectItem value="UNBAN">Unban</SelectItem>
+              <SelectItem value="MUTE">Mute</SelectItem>
+              <SelectItem value="WARN">Advertência</SelectItem>
+              <SelectItem value="XP_ADD">XP</SelectItem>
+              <SelectItem value="COIN_ADD">Moedas</SelectItem>
+              <SelectItem value="ROLE_ADD">Cargo</SelectItem>
+              <SelectItem value="BROADCAST">Broadcast</SelectItem>
+            </Select>
+            <div className="w-full min-w-0 sm:flex-1">
+              <Input
+                placeholder="Filtrar por usuário ou ação"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      <ul className="space-y-2">
-        {loading ? (
-          <li className="py-8 text-center text-slate-500">Carregando logs...</li>
-        ) : logs.length === 0 ? (
-          <li className="py-8 text-center text-slate-500">Nenhum log encontrado.</li>
-        ) : (
-          logs.map((log) => (
-            <li
-              key={log.id}
-              className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`${ACTION_PILL_BASE} ${ACTION_PILLS[log.action] ?? "border-white/10 bg-white/[0.05] text-slate-400"}`}
-                    >
-                      {ACTION_LABELS[log.action] ?? log.action}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      por @{log.moderator}
-                      {log.targetUser && <> → @{log.targetUser}</>}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-200">{log.description}</p>
-                </div>
-                <time
-                  className="shrink-0 text-xs text-slate-500"
-                  dateTime={log.createdAt}
+        <div className="px-5 py-4">
+          <ul className="space-y-2">
+            {loading ? (
+              <li className="py-8 text-center text-slate-500">Carregando logs...</li>
+            ) : logs.length === 0 ? (
+              <li className="py-8 text-center text-slate-500">Nenhum log encontrado.</li>
+            ) : (
+              logs.map((log) => (
+                <li
+                  key={log.id}
+                  className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3"
                 >
-                  {new Date(log.createdAt).toLocaleString("pt-BR")}
-                </time>
-              </div>
-            </li>
-          ))
-        )}
-      </ul>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`${ACTION_PILL_BASE} ${ACTION_PILLS[log.action] ?? "border-white/10 bg-white/[0.05] text-slate-400"}`}
+                        >
+                          {ACTION_LABELS[log.action] ?? log.action}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          por @{log.moderator}
+                          {log.targetUser && <> → @{log.targetUser}</>}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-200">{log.description}</p>
+                    </div>
+                    <time
+                      className="shrink-0 text-xs text-slate-500"
+                      dateTime={log.createdAt}
+                    >
+                      {new Date(log.createdAt).toLocaleString("pt-BR")}
+                    </time>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      </Card>
     </div>
   );
 }
