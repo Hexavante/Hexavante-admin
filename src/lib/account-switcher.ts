@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getApiUrl } from "@/lib/auth-session";
+import { getWebUserForToken } from "@/services/web-session.service";
 
 const ACCOUNTS_COOKIE = "hx_accounts";
 const MAX_ACCOUNTS = 5;
@@ -41,19 +41,7 @@ async function saveAccounts(accounts: LinkedAccount[]) {
 }
 
 async function fetchUserForToken(token: string) {
-  try {
-    const res = await fetch(`${getApiUrl()}/api/v1/auth/session`, {
-      headers: { cookie: `__Secure-hexavante.session_token=${token}` },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      user?: { id: string; name: string; username: string | null; avatarUrl: string | null } | null;
-    };
-    return data.user ?? null;
-  } catch {
-    return null;
-  }
+  return getWebUserForToken(token);
 }
 
 /** Adiciona (ou atualiza) a conta da lista multiconta. Retorna false se o token for inválido. */

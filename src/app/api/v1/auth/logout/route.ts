@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
-import { withApiErrorHandling } from "@/lib/api-error";
-import { requireBearerAuth } from "@/lib/api-auth";
+import { cookies } from "next/headers";
+import { deleteWebSession } from "@/services/web-session.service";
 
-/** JWT stateless — logout é responsabilidade do cliente descartar o token. */
-export const POST = withApiErrorHandling(async (req: Request) => {
-  await requireBearerAuth(req);
-  return NextResponse.json({ success: true });
-});
+export async function POST() {
+  const store = await cookies();
+  const token = store.get("__Secure-hexavante.session_token")?.value ?? store.get("hexavante.session_token")?.value;
+  await deleteWebSession(token);
+  const response = NextResponse.json({ success: true });
+  response.cookies.delete("__Secure-hexavante.session_token");
+  response.cookies.delete("hexavante.session_token");
+  return response;
+}

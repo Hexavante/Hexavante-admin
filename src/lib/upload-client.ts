@@ -1,7 +1,10 @@
 "use client";
 
+import { platformFetch } from "@/lib/platform-fetch";
 type UploadResult = {
   url?: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
   error?: string;
   width?: number;
   height?: number;
@@ -17,7 +20,8 @@ export async function parseUploadResponse(response: Response): Promise<UploadRes
 
   if (contentType.includes("application/json")) {
     try {
-      return (await response.json()) as UploadResult;
+      const data = (await response.json()) as UploadResult;
+      return { ...data, url: data.url ?? data.avatarUrl ?? data.bannerUrl };
     } catch {
       throw new Error("Resposta inválida do servidor. Tente novamente.");
     }
@@ -36,7 +40,7 @@ export async function uploadImageFile(endpoint: string, file: File): Promise<Upl
   const body = new FormData();
   body.append("file", file);
 
-  const response = await fetch(endpoint, { method: "POST", body });
+  const response = await platformFetch(endpoint, { method: "POST", body });
   const data = await parseUploadResponse(response);
 
   if (!response.ok || !data.url) {

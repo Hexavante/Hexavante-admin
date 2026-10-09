@@ -1,5 +1,6 @@
 "use client";
 
+import { platformFetch } from "@/lib/platform-fetch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getApiUrl } from "@/lib/api-url";
 
@@ -80,7 +81,7 @@ export function useCourses(params: CourseQueryParams = {}) {
       if (params.level) searchParams.set("level", params.level);
       if (params.courseType) searchParams.set("courseType", params.courseType);
 
-      const res = await fetch(
+      const res = await platformFetch(
         `${API_URL}/api/v1/courses?${searchParams.toString()}`
       );
       if (!res.ok) throw new Error("Failed to fetch courses");
@@ -94,7 +95,7 @@ export function useCourse(id: string) {
   return useQuery({
     queryKey: courseKeys.detail(id),
     queryFn: async (): Promise<CourseDetail> => {
-      const res = await fetch(`${API_URL}/api/v1/courses/${id}`);
+      const res = await platformFetch(`${API_URL}/api/v1/courses/${id}`);
       if (!res.ok) throw new Error("Failed to fetch course");
       return res.json();
     },
@@ -107,7 +108,7 @@ export function useEnrollCourse() {
 
   return useMutation({
     mutationFn: async (courseId: string) => {
-      const res = await fetch(`${API_URL}/api/v1/courses/${courseId}/enroll`, {
+      const res = await platformFetch(`${API_URL}/api/v1/courses/${courseId}/enroll`, {
         method: "POST",
         credentials: "include",
       });

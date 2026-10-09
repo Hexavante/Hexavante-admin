@@ -2,10 +2,9 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getApiUrl } from "@/lib/auth-session";
+import { deleteWebSession } from "@/services/web-session.service";
 import { getAccounts, removeAccount } from "@/lib/account-switcher";
 
-const API_URL = getApiUrl();
 
 const COOKIE_NAMES = [
   "hexavante.session_token",
@@ -14,27 +13,14 @@ const COOKIE_NAMES = [
 
 export async function signOutAction() {
   const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  // Try to delete session on API (best effort)
-  try {
-    await fetch(`${API_URL}/api/v1/auth/logout`, {
-      method: "POST",
-      headers: { cookie: cookieHeader },
-    });
-  } catch {
-    // Ignore errors — we'll clear the cookie locally regardless
-  }
+  const activeSessionToken = cookieStore.get("__Secure-hexavante.session_token")?.value
+    ?? cookieStore.get("hexavante.session_token")?.value;
+  await deleteWebSession(activeSessionToken);
 
   // Remove a conta atual da lista multiconta
   try {
     const accounts = await getAccounts();
-    const activeToken = cookieStore.get("__Secure-hexavante.session_token")?.value
-      ?? cookieStore.get("hexavante.session_token")?.value;
-    const current = accounts.find((a) => a.token === activeToken);
+    const current = accounts.find((a) => a.token === activeSessionToken);
     if (current) await removeAccount(current.userId);
   } catch {
     // best effort

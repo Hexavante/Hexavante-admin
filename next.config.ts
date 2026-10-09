@@ -38,7 +38,7 @@ const SECURITY_HEADERS = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://assets.hexavante.com.br",
-      "connect-src 'self' https://api.hexavante.com.br wss://api.hexavante.com.br",
+      "connect-src 'self'",
       "media-src 'self' blob:",
       "worker-src 'self' blob:",
       "frame-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://w.soundcloud.com",

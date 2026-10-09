@@ -73,7 +73,8 @@
     "mobile:android:sync": "npx cap sync android",
     "mobile:android:build": "cd android && ./gradlew assembleDebug && echo 'APK em android/app/build/outputs/apk/debug/'",
     "mobile:android:install": "npx cap run android",
-    "mobile:android:run": "npx cap run android"
+    "mobile:android:run": "npx cap run android",
+    "check:web-api-isolation": "node scripts/check-web-api-isolation.mjs"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

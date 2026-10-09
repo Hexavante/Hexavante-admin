@@ -1,10 +1,8 @@
 import { randomBytes } from "node:crypto";
 
 export const PRODUCTION_APP_URL = "https://app.hexavante.com.br";
-export const PRODUCTION_API_URL = "https://api.hexavante.com.br";
 
 const DEV_APP_URL = "http://localhost:3000";
-const DEV_API_URL = "http://localhost:3045";
 
 function trimUrl(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -48,23 +46,6 @@ export function getAuthBaseUrl(): string {
   }
 
   return DEV_APP_URL;
-}
-
-export function getApiBaseUrl(): string {
-  const explicit = trimUrl(process.env.AUTH_API_URL);
-
-  if (explicit) {
-    if (process.env.NODE_ENV === "production" && isLocalDevUrl(explicit)) {
-      return PRODUCTION_API_URL;
-    }
-    return explicit;
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    return PRODUCTION_API_URL;
-  }
-
-  return DEV_API_URL;
 }
 
 export function getOAuthCredentials() {

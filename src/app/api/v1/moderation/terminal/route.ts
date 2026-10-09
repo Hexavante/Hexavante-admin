@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { createWebSession } from "@/services/web-session.service";
+import { prisma } from "@/lib/prisma";
 import { ApiError, withApiErrorHandling } from "@/lib/api-error";
 import { requireBearerAdmin } from "@/lib/api-auth";
 import { executeModerationCommand } from "@/services/moderation-admin.service";
 
-const API_URL =
-  process.env.AUTH_API_URL ||
-  (process.env.NODE_ENV === "production"
-    ? "https://api.hexavante.com.br"
-    : "http://localhost:3045");
 
 export const POST = withApiErrorHandling(async (req) => {
   const ctx = await requireBearerAdmin(req);
@@ -32,31 +28,19 @@ export const POST = withApiErrorHandling(async (req) => {
 
   const data = result.data as { action?: string; userId?: string; username?: string } | undefined;
   if (data?.action === "impersonate" && data.userId) {
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((c) => `${c.name}=${c.value}`)
-      .join("; ");
-
-    const res = await fetch(`${API_URL}/admin/impersonate-user`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        cookie: cookieHeader,
-      },
-      body: JSON.stringify({ userId: data.userId }),
-    });
-
-    if (res.ok) {
-      const setCookie = res.headers.get("set-cookie");
+    const target = await prisma.user.findUnique({ where: { id: data.userId }, select: { id: true } });
+    if (target) {
+      const session = await createWebSession(target.id);
+      await prisma.session.update({ where: { id: session.id }, data: { impersonatedBy: ctx.userId } });
       const response = NextResponse.json({
         ...result,
         message: `✅ Iniciando visualização como @${data.username}...`,
         data: { redirect: "/" },
       });
-      if (setCookie) {
-        response.headers.set("Set-Cookie", setCookie);
-      }
+      response.cookies.set("__Secure-hexavante.session_token", session.token, {
+        httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/",
+        maxAge: 7 * 24 * 60 * 60, domain: process.env.NODE_ENV === "production" ? ".hexavante.com.br" : undefined,
+      });
       return response;
     }
   }

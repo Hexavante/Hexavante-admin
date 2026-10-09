@@ -1,5 +1,6 @@
 "use client";
 
+import { platformFetch } from "@/lib/platform-fetch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getApiUrl } from "@/lib/api-url";
 
@@ -33,7 +34,7 @@ export function useSession() {
     queryKey: authKeys.session(),
     queryFn: async (): Promise<Session | null> => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/auth/session`, {
+        const res = await platformFetch(`${API_URL}/api/v1/auth/session`, {
           credentials: "include",
         });
         if (!res.ok) return null;
@@ -53,7 +54,7 @@ export function useSignOut() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${API_URL}/api/v1/auth/logout`, {
+      const res = await platformFetch(`${API_URL}/api/v1/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

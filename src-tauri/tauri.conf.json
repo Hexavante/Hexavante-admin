@@ -25,7 +25,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' *; img-src 'self' data: https://*.googleusercontent.com https://avatars.githubusercontent.com; form-action 'self';"
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://desktop-api.hexavante.com.br; img-src 'self' data: blob: https:; form-action 'self';"
     }
   },
   "bundle": {
@@ -43,7 +43,12 @@
     "longDescription": "Hexavante Desktop - Cursos, simulados gamificados, comunidade e mais.",
     "linux": {
       "deb": {
-        "depends": ["libwebkit2gtk-4.1-0", "libappindicator3-1", "librsvg2-2", "libgtk-3-0"]
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libappindicator3-1",
+          "librsvg2-2",
+          "libgtk-3-0"
+        ]
       }
     },
     "windows": {
@@ -60,7 +65,9 @@
     "http": {
       "enabled": true,
       "scope": {
-        "allow": ["https://api.hexavante.com.br/*", "https://app.hexavante.com.br/*"],
+        "allow": [
+          "https://desktop-api.hexavante.com.br/*"
+        ],
         "deny": []
       }
     }
