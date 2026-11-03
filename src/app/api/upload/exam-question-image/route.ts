@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 
 import { canModerate } from "@/lib/permissions";
 import { rateLimitUpload, extractClientIp } from "@/lib/rate-limit";
@@ -19,9 +19,9 @@ const MAX_DIMENSION = 1920;
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
+    const user = await getAdminSession();
 
-    if (!session?.user?.id || !canModerate(session.user.roles)) {
+    if (!user?.id || !canModerate(user.roles)) {
       return Response.json({ error: "Não autorizado." }, { status: 403 });
     }
 

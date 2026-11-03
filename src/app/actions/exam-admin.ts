@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-auth";
 import { canModerate } from "@/lib/permissions";
 import { parseAlternativesFromFormData } from "@/lib/exam-alternatives";
 import { examAdminSchema, examQuestionSchema } from "@/lib/validations/exam";
@@ -18,14 +18,14 @@ import { redirect } from "next/navigation";
 export type ActionResult = { success: boolean; error?: string };
 
 async function requireModerator() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getAdminSession();
+  if (!user?.id) {
     throw new Error("Faça login para continuar.");
   }
-  if (!canModerate(session.user.roles)) {
+  if (!canModerate(user.roles)) {
     throw new Error("Acesso restrito a moderadores.");
   }
-  return session.user;
+  return user;
 }
 
 export async function createExamAction(
