@@ -2,8 +2,7 @@
 
 import { cookies } from "next/headers";
 import { getAdminSession } from "@/lib/admin-auth";
-import { prisma } from "@/lib/prisma";
-import { createWebSession, deleteWebSession } from "@/services/web-session.service";
+import { createImpersonation, deleteWebSession } from "@/services/web-session.service";
 import { writeModerationLog } from "@/services/moderation-admin.service";
 
 async function requireSuperAdmin() {
@@ -16,14 +15,10 @@ function cookieOptions() { return { httpOnly: true, secure: process.env.NODE_ENV
 
 export async function impersonateUser(userId: string) {
   const admin = await requireSuperAdmin();
-  const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, fullName: true } });
-  if (!target) throw new Error("Usuário não encontrado");
-  const session = await createWebSession(target.id);
-  await prisma.session.update({ where: { id: session.id }, data: { impersonatedBy: admin.id } });
+  const { session, user } = await createImpersonation(admin.id, userId);
   const store = await cookies();
   store.set("__Secure-hexavante.session_token", session.token, cookieOptions());
-  await writeModerationLog({ moderatorId: admin.id, targetUserId: userId, action: "IMPERSONATE", description: "Iniciou impersonação de usuário", metadata: { userId } });
-  return { success: true, user: target };
+  return { success: true, user };
 }
 
 export async function stopImpersonating() {

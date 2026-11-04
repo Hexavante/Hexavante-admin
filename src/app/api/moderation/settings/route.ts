@@ -17,5 +17,6 @@ export async function GET() {
     ...settings,
     canManageMaintenance: isSuperAdmin,
     canImpersonate: isSuperAdmin,
+    viewer: { id: session.id, roles },
   });
 }

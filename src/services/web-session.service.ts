@@ -38,3 +38,25 @@ export async function getWebUserForToken(token: string) {
     expiresAt: session.expiresAt,
   };
 }
+
+/** Confere os papéis atuais e registra toda a impersonação na mesma transação. */
+export async function createImpersonation(actorId: string, targetId: string) {
+  return prisma.$transaction(async tx => {
+    const actor = await tx.userRole.findFirst({ where: {userId: actorId, role: {name:"SUPERADMIN"}}, select:{userId:true} });
+    if (!actor) throw new Error("Acesso restrito a superadministradores.");
+    const target = await tx.user.findUnique({ where: {id: targetId}, select: {
+      id:true, email:true, fullName:true, role:true, roles:{select:{role:{select:{name:true}}}}
+    } });
+    if (!target) throw new Error("Usuário não encontrado.");
+    const roles = [target.role.toUpperCase(), ...target.roles.map(r => r.role.name)];
+    if (actorId === targetId || roles.some(name => ["MODERATOR","ADMIN","SUPERADMIN"].includes(name))) {
+      throw new Error("Não é permitido impersonar staff.");
+    }
+    const session = await tx.session.create({data:{
+      userId:targetId, impersonatedBy:actorId, token:randomBytes(32).toString("base64url"),
+      expiresAt:new Date(Date.now()+SESSION_MS),
+    }});
+    await tx.moderationLog.create({data:{moderatorId:actorId,targetUserId:targetId,action:"IMPERSONATE",description:"Iniciou impersonação de usuário"}});
+    return { session, user:{id:target.id, email:target.email, fullName:target.fullName} };
+  }, { isolationLevel:"Serializable" });
+}

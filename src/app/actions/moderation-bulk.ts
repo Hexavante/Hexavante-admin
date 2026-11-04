@@ -6,7 +6,7 @@ import {
   muteUser,
   unmuteUser,
 } from "@/app/actions/moderation-users";
-import { requireModeratorAccount } from "@/lib/moderation/guards";
+import { requireAdminAccount, requireModeratorAccount } from "@/lib/moderation/guards";
 
 export type BulkAction = "ban" | "unban" | "mute" | "unmute";
 
@@ -30,7 +30,8 @@ export async function bulkUserAction(
   options?: { reason?: string; duration?: string },
 ): Promise<BulkActionResult> {
   try {
-    await requireModeratorAccount();
+    if (action === "unban" || action === "unmute") await requireAdminAccount();
+    else await requireModeratorAccount();
   } catch (e) {
     return {
       success: false,
