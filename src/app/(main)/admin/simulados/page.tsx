@@ -38,6 +38,14 @@ export default async function ModerationExamsPage() {
         }
       />
 
+      {exams.some(exam => exam.submission && !exam.isPublished) && (
+        <section className="mb-6 rounded-xl border border-amber-400/30 p-4">
+          <h2 className="font-bold">Simulados enviados por instrutores</h2>
+          <ul className="mt-2 space-y-2">{exams.filter(exam => exam.submission && !exam.isPublished).map(exam =>
+            <li key={exam.id}><Link className="hx-accent-link" href={`/admin/simulados/${exam.id}/edit`}>Revisar {exam.title} →</Link></li>
+          )}</ul>
+        </section>
+      )}
       {exams.length === 0 ? (
         <EmptyState icon={ClipboardList} title="Nenhum simulado cadastrado.">
           <LinkButton href="/admin/simulados/new" className="mt-4">
@@ -56,7 +64,7 @@ export default async function ModerationExamsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-white">{exam.title}</h3>
                   <Badge variant={exam.isPublished ? "emerald" : "amber"}>
-                    {exam.isPublished ? "Publicado" : "Rascunho"}
+                    {exam.isPublished ? "Publicado" : exam.submission ? "Aguardando revisão" : "Rascunho"}
                   </Badge>
                   <Badge variant="teal">{EXAM_TYPE_LABELS[exam.examType]}</Badge>
                 </div>

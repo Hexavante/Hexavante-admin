@@ -18,6 +18,7 @@ async function uniqueExamSlug(title: string): Promise<string> {
 export async function listExamsForAdmin() {
   return prisma.exam.findMany({
     include: {
+      submission: { select: { submittedAt: true } },
       _count: { select: { questions: true, attempts: true } },
     },
     orderBy: { createdAt: "desc" },
