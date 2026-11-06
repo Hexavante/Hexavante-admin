@@ -37,3 +37,9 @@ docker logs hexavante-admin                   # sem erro
 ```
 
 Depois: login completo com código e navegação pelas 15 telas. Ver [casos-de-uso.md](casos-de-uso.md).
+
+## Capas de simulados e uploads
+
+O App e o Admin devem montar o **mesmo volume persistente** em `/app/public/uploads`. Compartilhar apenas o banco não compartilha as imagens. Confira os mounts dos dois containers antes de publicar; preserve o volume existente.
+
+A rota `/uploads/[...path]` serve arquivos enviados após a inicialização do Next standalone. Depois do deploy, envie uma capa e abra o mesmo caminho `/uploads/exams/<arquivo>.webp` nos domínios do painel e do app. Ambos devem responder 200 com Content-Type image/webp. Se apenas um responder, corrija o compartilhamento do volume. Se o arquivo já não existir no volume, envie a capa novamente.
