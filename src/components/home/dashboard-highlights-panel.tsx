@@ -26,7 +26,7 @@ export function DashboardHighlightsPanel({ highlights }: Props) {
   return (
     <section className="mt-10 grid gap-3 md:grid-cols-2">
       {nextGoal && (
-        <div className="anim-enter anim-d1">
+        <div className=" ">
         <Card padding="md" className="hx-lift h-full border-[hsl(var(--sidebar-highlight)/0.22)] bg-[hsl(var(--sidebar-highlight)/0.06)]">
           <div className="flex items-start gap-3">
             <span className="hx-icon-box">
@@ -55,7 +55,7 @@ export function DashboardHighlightsPanel({ highlights }: Props) {
       )}
 
       {nextLiveEvent && (
-        <div className="anim-enter anim-d2">
+        <div className=" ">
         <Card
           padding="md"
           className={

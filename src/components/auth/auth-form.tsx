@@ -132,7 +132,7 @@ export function AuthForm({
   const renderField = (field: Field, index: number) => {
     if (field.checkbox) {
       return (
-        <div key={field.name} className="anim-enter-fade" style={{ animationDelay: `${0.05 + index * 0.06}s` }}>
+        <div key={field.name} className=" ">
           <div className="flex items-start gap-2">
             <Checkbox id={field.name} name={field.name} className="mt-0.5" />
             <Label htmlFor={field.name} className="text-xs font-normal leading-5 text-slate-300 cursor-pointer">
@@ -153,7 +153,7 @@ export function AuthForm({
     const showPassword = Boolean(visiblePasswords[field.name]);
 
     return (
-      <div key={field.name} className="anim-enter-fade min-w-0" style={{ animationDelay: `${0.05 + index * 0.06}s` }}>
+      <div key={field.name} className=" min-w-0">
         <Label htmlFor={field.name}>{field.label}</Label>
         <div className="relative">
           {Icon ? (
@@ -197,9 +197,9 @@ export function AuthForm({
   const formContent = (
     <>
       <div className={embedded ? "mb-6" : "mb-7"}>
-        <p className="anim-enter-fade text-xs font-semibold uppercase tracking-wide text-sky-300">Hexavante</p>
-        <h1 className="anim-enter mt-2 text-2xl font-black tracking-tight text-white">{title}</h1>
-        <p className="anim-enter mt-2 text-sm leading-6 text-slate-400" style={{ animationDelay: "0.05s" }}>{subtitle}</p>
+        <p className=" text-xs font-semibold uppercase tracking-wide text-sky-300">Hexavante</p>
+        <h1 className=" mt-2 text-2xl font-black tracking-tight text-white">{title}</h1>
+        <p className=" mt-2 text-sm leading-6 text-slate-400">{subtitle}</p>
       </div>
 
       <form action={formAction} onSubmit={handleSubmit} className="space-y-4">
@@ -215,7 +215,7 @@ export function AuthForm({
         )}
 
         {formKind === "login" && (
-          <div className="anim-enter-fade flex items-center gap-2" style={{ animationDelay: "0.3s" }}>
+          <div className=" flex items-center gap-2">
             <Checkbox id="rememberMe" name="rememberMe" />
             <Label htmlFor="rememberMe" className="text-sm font-normal text-slate-300 cursor-pointer">
               Lembrar-me
@@ -229,7 +229,7 @@ export function AuthForm({
           </Alert>
         )}
 
-        <div className="anim-enter-fade" style={{ animationDelay: "0.35s" }}>
+        <div className=" ">
           <Button type="submit" disabled={pending} className="hx-lift mt-2 h-11 w-full" size="lg">
             {pending ? (
               <>
@@ -252,7 +252,7 @@ export function AuthForm({
   }
 
   return (
-    <Card className="anim-enter-scale w-full max-w-md p-8 shadow-2xl shadow-black/30 backdrop-blur">
+    <Card className=" w-full max-w-md p-8 shadow-2xl shadow-black/30 backdrop-blur">
       {formContent}
     </Card>
   );

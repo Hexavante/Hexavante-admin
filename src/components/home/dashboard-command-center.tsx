@@ -89,7 +89,7 @@ export function DashboardCommandCenter({ pendingItems }: Props) {
       {pendingItems.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {pendingItems.map((item, i) => (
-            <div key={item.id} className="anim-enter-scale" style={{ animationDelay: `${0.05 + i * 0.07}s` }}>
+            <div key={item.id} className=" ">
             <Link
               href={item.href}
               className={cn(
