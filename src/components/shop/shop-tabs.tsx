@@ -261,7 +261,6 @@ function categoryLabelShort(category: StoreItemCategory): string {
     COSMETIC: "Ícones",
     BADGE: "Distintivos",
     FRAME: "Molduras dec.",
-    EMOJI_PACK: "Emojis",
     PROFILE_BACKGROUND: "Fundos",
   };
   return labels[category] ?? category;

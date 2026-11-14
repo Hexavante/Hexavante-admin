@@ -12,17 +12,7 @@ async function profile(provider: string, accessToken: string) {
     if (!data.email || data.verified_email !== true) throw new Error("O Google não forneceu um e-mail verificado");
     return { id: data.id, email: data.email, name: data.name || data.email.split("@")[0], avatar: data.picture ?? null };
   }
-  const response = await fetch("https://api.github.com/user", { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github+json" } });
-  if (!response.ok) throw new Error("Perfil GitHub indisponível");
-  const data = await response.json() as { id: number; email?: string | null; name?: string | null; login: string; avatar_url?: string };
-  let email = data.email ?? null;
-  if (!email) {
-    const emails = await fetch("https://api.github.com/user/emails", { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github+json" } });
-    const list = emails.ok ? await emails.json() as Array<{ email: string; primary?: boolean; verified?: boolean }> : [];
-    email = list.find((entry) => entry.primary && entry.verified)?.email ?? list.find((entry) => entry.verified)?.email ?? null;
-  }
-  if (!email) throw new Error("O provider não forneceu um e-mail verificado");
-  return { id: String(data.id), email, name: data.name || data.login, avatar: data.avatar_url ?? null };
+  throw new Error("Provider não suportado");
 }
 const ALLOWED_CALLBACK_HOSTS = new Set(["hexavante.com.br", "www.hexavante.com.br", "app.hexavante.com.br", "localhost", "127.0.0.1"]);
 function safeDestination(raw: string | undefined) {
@@ -47,10 +37,10 @@ export async function GET(request: Request, context: { params: Promise<{ provide
   if (!url.searchParams.get("state") || url.searchParams.get("state") !== stateCookie || !url.searchParams.get("code")) return NextResponse.redirect(new URL("/login?error=oauth_invalid_state", base));
   try {
     const credentials = getOAuthCredentials();
-    const clientId = provider === "google" ? credentials.googleId : credentials.githubId;
-    const clientSecret = provider === "google" ? credentials.googleSecret : credentials.githubSecret;
-    if (!clientId || !clientSecret || !["google", "github"].includes(provider)) throw new Error("Provider não configurado");
-    const tokenEndpoint = provider === "google" ? "https://oauth2.googleapis.com/token" : "https://github.com/login/oauth/access_token";
+    const clientId = credentials.googleId;
+    const clientSecret = credentials.googleSecret;
+    if (!clientId || !clientSecret || provider !== "google") throw new Error("Provider não configurado");
+    const tokenEndpoint = "https://oauth2.googleapis.com/token";
     const tokenResponse = await fetch(tokenEndpoint, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, code: url.searchParams.get("code")!, redirect_uri: `${base}/oauth/callback/${provider}`, grant_type: "authorization_code" }) });
     const tokenData = await tokenResponse.json() as { access_token?: string };
     if (!tokenResponse.ok || !tokenData.access_token) throw new Error("Falha ao trocar código OAuth");

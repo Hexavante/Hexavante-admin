@@ -20,6 +20,12 @@ type TemporaryMetadata = {
 };
 
 export async function ensureShopCatalog() {
+  // Pacotes de emoji saíram da loja (reembolso feito pelo Web).
+  await prisma.storeItem.updateMany({
+    where: { category: "EMOJI_PACK", isActive: true },
+    data: { isActive: false },
+  });
+
   if (DEPRECATED_SHOP_SLUGS.length > 0) {
     await prisma.storeItem.updateMany({
       where: { slug: { in: DEPRECATED_SHOP_SLUGS } },
@@ -272,7 +278,6 @@ const EQUIPPABLE_CATEGORIES: StoreItemCategory[] = [
   "COSMETIC",
   "BADGE",
   "FRAME",
-  "EMOJI_PACK",
   "PROFILE_BACKGROUND",
 ];
 
@@ -338,8 +343,6 @@ function validateEquipMetadata(category: StoreItemCategory, metadata: unknown): 
       return typeof meta.badgeId === "string";
     case "FRAME":
       return typeof meta.frameId === "string";
-    case "EMOJI_PACK":
-      return typeof meta.emojiPackId === "string" && Array.isArray(meta.emojis);
     case "PROFILE_BACKGROUND":
       return typeof meta.backgroundId === "string";
     default:
@@ -396,7 +399,6 @@ export async function getProfileCosmetics(userId: string) {
   const badge = equipped.find((e) => e.storeItem.category === "BADGE");
   const frame = equipped.find((e) => e.storeItem.category === "FRAME");
   const background = equipped.find((e) => e.storeItem.category === "PROFILE_BACKGROUND");
-  const emojiPack = equipped.find((e) => e.storeItem.category === "EMOJI_PACK");
 
   const titleMeta = title?.storeItem.metadata as { titleText?: string } | null;
   const borderMeta = border?.storeItem.metadata as { borderId?: string; rarity?: string } | null;
@@ -411,10 +413,6 @@ export async function getProfileCosmetics(userId: string) {
     backgroundId?: string;
     rarity?: string;
   } | null;
-  const emojiMeta = emojiPack?.storeItem.metadata as {
-    emojiPackId?: string;
-    emojis?: unknown;
-  } | null;
 
   const themeId = themeMeta?.themeId ?? null;
   const resolvedThemeId = themeId === "default" ? null : themeId;
@@ -423,9 +421,6 @@ export async function getProfileCosmetics(userId: string) {
     cosmeticMeta?.cosmeticType === "profile_icon" ? (cosmeticMeta.iconId ?? null) : null;
   const appTheme = resolveAppTheme(resolvedThemeId);
 
-  const emojiList = Array.isArray(emojiMeta?.emojis)
-    ? (emojiMeta!.emojis as unknown[]).filter((e) => typeof e === "string").map(String)
-    : null;
 
   return {
     equippedTitle: titleMeta?.titleText ?? title?.storeItem.name ?? null,
@@ -447,7 +442,5 @@ export async function getProfileCosmetics(userId: string) {
     frameRarity: frameMeta?.rarity ?? null,
     profileBackgroundId: backgroundMeta?.backgroundId ?? null,
     profileBackgroundRarity: backgroundMeta?.rarity ?? null,
-    emojiPackId: emojiMeta?.emojiPackId ?? null,
-    emojiPackEmojis: emojiList,
   };
 }

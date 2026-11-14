@@ -1,11 +1,10 @@
-export const oauthProviders: { google?: boolean; github?: boolean; microsoft?: boolean } = {
+export const oauthProviders: { google?: boolean; microsoft?: boolean } = {
   // google: true, // habilitar quando configurar Google Cloud Console
-  // github: true, // habilitar quando configurar GitHub OAuth App
   // microsoft: true, // descomentar quando tiver credenciais
 };
 
 export function hasOAuthProviders() {
-  return oauthProviders.google || oauthProviders.github;
+  return Boolean(oauthProviders.google);
 }
 
 export const oauthErrorMessages: Record<string, string> = {

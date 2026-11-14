@@ -4,7 +4,6 @@ import { getAuthBaseUrl, getOAuthCredentials } from "@/lib/auth-env";
 
 const PROVIDERS = {
   google: { authorization: "https://accounts.google.com/o/oauth2/v2/auth", scopes: "openid email profile" },
-  github: { authorization: "https://github.com/login/oauth/authorize", scopes: "user:email" },
 } as const;
 const ALLOWED_HOSTS = new Set(["hexavante.com.br", "www.hexavante.com.br", "app.hexavante.com.br", "localhost", "127.0.0.1"]);
 
@@ -12,7 +11,7 @@ export async function GET(request: Request, context: { params: Promise<{ provide
   const { provider } = await context.params;
   if (!(provider in PROVIDERS)) return NextResponse.json({ error: "Provider não suportado" }, { status: 404 });
   const credentials = getOAuthCredentials();
-  const clientId = provider === "google" ? credentials.googleId : credentials.githubId;
+  const clientId = credentials.googleId;
   if (!clientId) return NextResponse.json({ error: "Provider não configurado" }, { status: 503 });
   const incoming = new URL(request.url).searchParams.get("callbackURL") || "/";
   let callback = incoming;
