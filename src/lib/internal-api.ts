@@ -2,10 +2,10 @@
  * URL da API para chamadas servidor→servidor. O Admin não tinha cliente da
  * API (o `api-url` dele só aponta para Route Handlers próprios).
  */
-export const INTERNAL_API_URL =
-  process.env.INTERNAL_API_URL ||
-  process.env.AUTH_API_URL ||
-  (process.env.NODE_ENV === "production" ? "https://api.hexavante.com.br" : "http://localhost:3045");
+// Em produção a env chega pelo deploy (extra-env do deploy-app); em dev o
+// fallback é a API local na 3045. A URL pública da API é proibida aqui pelo
+// check:web-api-isolation — o Admin só fala com /internal/v1/*.
+export const INTERNAL_API_URL = process.env.INTERNAL_API_URL || "http://localhost:3045";
 
 /**
  * Cliente serviço-a-serviço Admin → API (`/internal/v1/*`).

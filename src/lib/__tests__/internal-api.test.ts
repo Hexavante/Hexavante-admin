@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { INTERNAL_API_URL as SERVER_API_URL, InternalApiError, internalApiPost } from "@/lib/internal-api";
+import { INTERNAL_API_URL, InternalApiError, internalApiPost } from "@/lib/internal-api";
 
 const ORIGINAL = process.env.INTERNAL_API_TOKEN;
 const fetchMock = vi.fn();
@@ -30,7 +30,7 @@ describe("internalApiPost", () => {
     await expect(internalApiPost("/internal/v1/x", { a: 1 })).resolves.toEqual({ award: null });
 
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${SERVER_API_URL}/internal/v1/x`);
+    expect(url).toBe(`${INTERNAL_API_URL}/internal/v1/x`);
     expect(init.method).toBe("POST");
     expect(init.headers["x-internal-token"]).toBe("token-de-teste-com-mais-de-32-caracteres");
     expect(JSON.parse(init.body)).toEqual({ a: 1 });
